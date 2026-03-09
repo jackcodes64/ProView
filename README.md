@@ -1,7 +1,7 @@
 # ProView Description 
-
+---
 > **ProView** is not just another process monitoring tool.  
-> Imagine `top` with a brain; instead of drowning you in cryptic numbers and endless rows, it highlights **meaningful insights**.  
+> Imagine `top` with a brain; instead of throwing 'cryptic' numbers and endless rows, it highlights **meaningful insights**.  
 > Abnormal patterns are singled out, relationships between processes are revealed, and administrators gain clarity for **early intervention** and **better understanding** of system behavior.
 
 ---
