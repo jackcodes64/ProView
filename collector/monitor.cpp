@@ -2,6 +2,8 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <algorithm>
+#include <cctype>
 #include <vector>
 #include <unistd.h>
 #include <dirent.h>
@@ -29,16 +31,18 @@ void getMemoryUsage(pid_t pid) {
     }
 }
 
-void getProcessNumber(){
+std::string getProcessNumber(){
     std::string stat = readFile("/proc/stat");
     std::istringstream iss(stat);
     std::string line;
     while (std::getline(iss, line)) {
         if(line.find("processes") != std::string::npos){
-            
+            return line;
         }
     }
+    return "Error";
 }
+
 // Get disk I/O from /proc/[pid]/io
 void getDiskIO(pid_t pid) {
     std::string io = readFile("/proc/" + std::to_string(pid) + "/io");
@@ -60,26 +64,33 @@ void getPriority(pid_t pid) {
 }
 
 // Count zombie processes
-// int countZombies() {
-//     int zombies = 0;
-//     DIR *dir = opendir("/proc");
-//     if (!dir) return 0;
+std::string readFile(const std::string& path);
 
-//     struct dirent *entry;
-//     while ((entry = readdir(dir)) != nullptr) {
-//         if (entry->d_type == DT_DIR) {
-//             std::string pidjjStr = entry->d_name;
-//             if (std::all_of(pidStr.begin(), pidStr.end(), ::isdigit)) {
-//                 std::string status = readFile("/proc/" + pidStr + "/status");
-//                 if (status.find("State:\tZ") != std::string::npos) {
-//                     zombies++;
-//                 }
-//             }
-//         }
-//     }
-//     closedir(dir);
-//     return zombies;
-// }
+int countZombies() {
+    int zombies = 0;
+    DIR *dir = opendir("/proc");
+    if (!dir) return 0;
+
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != nullptr) {
+        if (entry->d_type == DT_DIR) {
+            std::string pidStr = entry->d_name;
+
+            // Check if the directory name is all digits (i.e. a PID)
+            if (!pidStr.empty() &&
+                std::all_of(pidStr.begin(), pidStr.end(),
+                            [](unsigned char c){ return std::isdigit(c); })) {
+
+                std::string status = readFile("/proc/" + pidStr + "/status");
+                if (status.find("State:\tZ") != std::string::npos) {
+                    zombies++;
+                }
+            }
+        }
+    }
+    closedir(dir);
+    return zombies;
+}
 
 int main() {
     pid_t pid = getpid(); // Example: current process
@@ -95,10 +106,10 @@ int main() {
     getPriority(pid);
 
     std::cout<<"\n--- CPU ---"<<std::endl;
-    std::cout<<readFile("/proc/stat")<<std::endl;
+    std::cout<<getProcessNumber()<<std::endl;
 
     std::cout << "\n--- Zombie Processes ---" << std::endl;
-    //std::cout << "Zombie count: " << countZombies() << std::endl;
+    std::cout << "Zombie count: " << countZombies() << std::endl;
 
     std::string sdouble = "77.8";
     std::cout<<std::stold(sdouble) *3 << std::endl;
