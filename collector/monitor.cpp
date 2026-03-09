@@ -64,8 +64,6 @@ void getPriority(pid_t pid) {
 }
 
 // Count zombie processes
-std::string readFile(const std::string& path);
-
 int countZombies() {
     int zombies = 0;
     DIR *dir = opendir("/proc");
@@ -93,7 +91,7 @@ int countZombies() {
 }
 
 int main() {
-    pid_t pid = getpid(); // Example: current process
+    pid_t pid = getpid(); //current process
     std::cout << "Metrics for PID: " << pid << std::endl;
 
     std::cout << "\n--- Memory Usage ---" << std::endl;
