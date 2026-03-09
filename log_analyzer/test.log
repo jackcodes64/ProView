@@ -1,0 +1,183 @@
+[FAILED] Failed to start xdm.service - XDM Headless Engine.
+See 'systemctl status xdm.service' for details.
+[  OK  ] Started ssh.service - OpenBSD Secure Shell server.
+------------ Thu Jan 15 09:41:46 EAT 2026 ------------
+/dev/sda1: recovering journal
+/dev/sda1: Clearing orphaned inode 3195895 (uid=1000, gid=1000, mode=0100664, size=17803)
+/dev/sda1: Clearing orphaned inode 3154236 (uid=1000, gid=1000, mode=0100664, size=17803)
+/dev/sda1: Clearing orphaned inode 3164779 (uid=1000, gid=1000, mode=0100600, size=4194304)
+/dev/sda1: Clearing orphaned inode 3153183 (uid=1000, gid=1000, mode=0100600, size=64)
+/dev/sda1: Clearing orphaned inode 3153517 (uid=1000, gid=1000, mode=0100664, size=32768)
+/dev/sda1: Clearing orphaned inode 3671273 (uid=1000, gid=1000, mode=0100600, size=16384)
+/dev/sda1: Clearing orphaned inode 6172014 (uid=1000, gid=1000, mode=040700, size=4096)
+/dev/sda1: clean, 1059463/30466048 files, 24761813/121846272 blocks
+[  OK  ] Finished plymouth-read-write.service - Tell Plymouth To Write Out Runtime Data.
+         Mounting proc-sys-fs-binfmt_misc.mount - Arbitrary Executable File Formats File System...
+[  OK  ] Finished console-setup.service - Set console font and keymap.
+[  OK  ] Mounted proc-sys-fs-binfmt_misc.mount - Arbitrary Executable File Formats File System.
+[  OK  ] Finished systemd-binfmt.service - Set Up Additional Binary Formats.
+[  OK  ] Finished systemd-tmpfiles-setup.service - Create System Files and Directories.
+         Mounting run-rpc_pipefs.mount - RPC Pipe File System...
+[  OK  ] Started haveged.service - Entropy Daemon based on the HAVEGE algorithm.
+[  OK  ] Reached target sysinit.target - System Initialization.
+[  OK  ] Started apt-daily.timer - Daily apt download activities.
+[  OK  ] Started apt-daily-upgrade.timer - Daily apt upgrade and clean activities.
+[  OK  ] Started dpkg-db-backup.timer - Daily dpkg database backup timer.
+[  OK  ] Started e2scrub_all.timer - Periodic ext4 Online Metadata Check for All Filesystems.
+[  OK  ] Started exim4-base.timer - Daily exim4-base housekeeping.
+[  OK  ] Started fstrim.timer - Discard unused filesystem blocks once a week.
+[  OK  ] Started fwupd-refresh.timer - Refresh fwupd metadata regularly.
+[  OK  ] Started logrotate.timer - Daily rotation of log files.
+[  OK  ] Started man-db.timer - Daily man-db regeneration.
+[  OK  ] Started phpsessionclean.timer - Clean PHP session files every 30 mins.
+[  OK  ] Started plocate-updatedb.timer - Update the plocate database daily.
+[  OK  ] Started systemd-tmpfiles-clean.timer - Daily Cleanup of Temporary Directories.
+[  OK  ] Reached target timers.target - Timer Units.
+[  OK  ] Listening on dbus.socket - D-Bus System Message Bus Socket.
+[  OK  ] Listening on pcscd.socket - PC/SC Smart Card Daemon Activation Socket.
+[  OK  ] Listening on sshd-unix-local.socket - OpenSSH Server Socket (systemd-ssh-generator, AF_UNIX Local).
+[  OK  ] Listening on systemd-hostnamed.socket - Hostname Service Socket.
+[  OK  ] Reached target sockets.target - Socket Units.
+[  OK  ] Reached target basic.target - Basic System.
+         Starting accounts-daemon.service - Accounts Service...
+         Starting alsa-restore.service - Save/Restore Sound Card State...
+         Starting bluetooth.service - Bluetooth service...
+         Starting dbus.service - D-Bus System Message Bus...
+         Starting e2scrub_reap.service - Remove Stale Online ext4 Metadata Check Snapshots...
+         Starting polkit.service - Authorization Manager...
+         Starting smartmontools.service - Self Monitoring and Reporting Technology (SMART) Daemon...
+         Starting systemd-logind.service - User Login Management...
+         Starting zramswap.service - Linux zramswap setup...
+[  OK  ] Finished alsa-restore.service - Save/Restore Sound Card State.
+[  OK  ] Reached target sound.target - Sound Card.
+[  OK  ] Mounted run-rpc_pipefs.mount - RPC Pipe File System.
+[  OK  ] Reached target rpc_pipefs.target.
+[  OK  ] Reached target nfs-client.target - NFS client services.
+[  OK  ] Reached target remote-fs-pre.target - Preparation for Remote File Systems.
+[  OK  ] Reached target remote-fs.target - Remote File Systems.
+         Starting atd.service - Deferred execution scheduler...
+[  OK  ] Started cron.service - Regular background program processing daemon.
+[  OK  ] Started atd.service - Deferred execution scheduler.
+[  OK  ] Started smartmontools.service - Self Monitoring and Reporting Technology (SMART) Daemon.
+[  OK  ] Finished zramswap.service - Linux zramswap setup.
+[  OK  ] Started dbus.service - D-Bus System Message Bus.
+         Starting NetworkManager.service - Network Manager...
+[  OK  ] Started bluetooth.service - Bluetooth service.
+[  OK  ] Created slice user-1000.slice - User Slice of UID 1000.
+[  OK  ] Reached target bluetooth.target - Bluetooth Support.
+         Starting systemd-hostnamed.service - Hostname Service...
+[  OK  ] Started systemd-logind.service - User Login Management.
+         Starting user-runtime-dir@1000.service - User Runtime Directory /run/user/1000...
+[  OK  ] Finished user-runtime-dir@1000.service - User Runtime Directory /run/user/1000.
+[  OK  ] Started systemd-hostnamed.service - Hostname Service.
+[  OK  ] Started polkit.service - Authorization Manager.
+         Starting ModemManager.service - Modem Manager...
+[  OK  ] Started accounts-daemon.service - Accounts Service.
+         Starting NetworkManager-dispatcher.service - Network Manager Script Dispatcher Service...
+[  OK  ] Started NetworkManager-dispatcher.service - Network Manager Script Dispatcher Service.
+[  OK  ] Started ModemManager.service - Modem Manager.
+         Starting wpa_supplicant.service - WPA supplicant...
+[  OK  ] Started NetworkManager.service - Network Manager.
+         Starting NetworkManager-wait-online.service - Network Manager Wait Online...
+[  OK  ] Started wpa_supplicant.service - WPA supplicant.
+[  OK  ] Finished e2scrub_reap.service - Remove Stale Online ext4 Metadata Check Snapshots.
+[  OK  ] Finished networking.service - Raise network interfaces.
+[  OK  ] Reached target network.target - Network.
+         Starting mariadb.service - MariaDB 11.4.4 database server...
+         Starting ssh.service - OpenBSD Secure Shell server...
+         Starting systemd-user-sessions.service - Permit User Sessions...
+[  OK  ] Started xdm.service - XDM Headless Engine.
+[  OK  ] Finished systemd-user-sessions.service - Permit User Sessions.
+         Starting lightdm.service - Light Display Manager...
+         Starting plymouth-quit-wait.service - Hold until boot process finishes up...
+         Starting user@1000.service - User Manager for UID 1000...
+[  OK  ] Started xdm.service - XDM Headless Engine.
+[  OK  ] Started xdm.service - XDM Headless Engine.
+[  OK  ] Started ssh.service - OpenBSD Secure Shell server.
+[  OK  ] Started xdm.service - XDM Headless Engine.
+➜  ~ sudo cat /var/log/boot.log  
+------------ Sun Feb 08 09:25:12 EAT 2026 ------------
+/dev/sda1: clean, 1101089/30466048 files, 26154256/121846272 blocks
+         Mounting proc-sys-fs-binfmt_misc.mount - Arbitrary Executable File Formats File System...
+[  OK  ] Mounted proc-sys-fs-binfmt_misc.mount - Arbitrary Executable File Formats File System.
+[  OK  ] Finished systemd-binfmt.service - Set Up Additional Binary Formats.
+[  OK  ] Finished systemd-journal-flush.service - Flush Journal to Persistent Storage.
+         Starting systemd-tmpfiles-setup.service - Create System Files and Directories...
+[  OK  ] Finished systemd-tmpfiles-setup.service - Create System Files and Directories.
+         Mounting run-rpc_pipefs.mount - RPC Pipe File System...
+[  OK  ] Started haveged.service - Entropy Daemon based on the HAVEGE algorithm.
+[  OK  ] Reached target sysinit.target - System Initialization.
+[  OK  ] Started apt-daily.timer - Daily apt download activities.
+[  OK  ] Started apt-daily-upgrade.timer - Daily apt upgrade and clean activities.
+[  OK  ] Started dpkg-db-backup.timer - Daily dpkg database backup timer.
+[  OK  ] Started e2scrub_all.timer - Periodic ext4 Online Metadata Check for All Filesystems.
+[  OK  ] Started exim4-base.timer - Daily exim4-base housekeeping.
+[  OK  ] Started fstrim.timer - Discard unused filesystem blocks once a week.
+[  OK  ] Started fwupd-refresh.timer - Refresh fwupd metadata regularly.
+[  OK  ] Started logrotate.timer - Daily rotation of log files.
+[  OK  ] Started man-db.timer - Daily man-db regeneration.
+[  OK  ] Started phpsessionclean.timer - Clean PHP session files every 30 mins.
+[  OK  ] Started plocate-updatedb.timer - Update the plocate database daily.
+[  OK  ] Started systemd-tmpfiles-clean.timer - Daily Cleanup of Temporary Directories.
+[  OK  ] Reached target timers.target - Timer Units.
+[  OK  ] Listening on dbus.socket - D-Bus System Message Bus Socket.
+[  OK  ] Listening on pcscd.socket - PC/SC Smart Card Daemon Activation Socket.
+[  OK  ] Listening on sshd-unix-local.socket - OpenSSH Server Socket (systemd-ssh-generator, AF_UNIX Local).
+[  OK  ] Listening on systemd-hostnamed.socket - Hostname Service Socket.
+[  OK  ] Reached target sockets.target - Socket Units.
+[  OK  ] Reached target basic.target - Basic System.
+         Starting accounts-daemon.service - Accounts Service...
+         Starting alsa-restore.service - Save/Restore Sound Card State...
+         Starting bluetooth.service - Bluetooth service...
+         Starting dbus.service - D-Bus System Message Bus...
+         Starting e2scrub_reap.service - Remove Stale Online ext4 Metadata Check Snapshots...
+         Starting polkit.service - Authorization Manager...
+         Starting smartmontools.service - Self Monitoring and Reporting Technology (SMART) Daemon...
+         Starting systemd-logind.service - User Login Management...
+         Starting zramswap.service - Linux zramswap setup...
+[  OK  ] Mounted run-rpc_pipefs.mount - RPC Pipe File System.
+[  OK  ] Finished alsa-restore.service - Save/Restore Sound Card State.
+[  OK  ] Reached target rpc_pipefs.target.
+[  OK  ] Reached target sound.target - Sound Card.
+[  OK  ] Reached target nfs-client.target - NFS client services.
+[  OK  ] Reached target remote-fs-pre.target - Preparation for Remote File Systems.
+[  OK  ] Reached target remote-fs.target - Remote File Systems.
+         Starting atd.service - Deferred execution scheduler...
+[  OK  ] Started cron.service - Regular background program processing daemon.
+[  OK  ] Started atd.service - Deferred execution scheduler.
+[  OK  ] Started smartmontools.service - Self Monitoring and Reporting Technology (SMART) Daemon.
+[  OK  ] Finished zramswap.service - Linux zramswap setup.
+[  OK  ] Started dbus.service - D-Bus System Message Bus.
+         Starting NetworkManager.service - Network Manager...
+[  OK  ] Started bluetooth.service - Bluetooth service.
+[  OK  ] Started systemd-logind.service - User Login Management.
+[  OK  ] Created slice user-1000.slice - User Slice of UID 1000.
+[  OK  ] Reached target bluetooth.target - Bluetooth Support.
+         Starting user-runtime-dir@1000.service - User Runtime Directory /run/user/1000...
+         Starting systemd-hostnamed.service - Hostname Service...
+[  OK  ] Finished user-runtime-dir@1000.service - User Runtime Directory /run/user/1000.
+[  OK  ] Started systemd-hostnamed.service - Hostname Service.
+[  OK  ] Started polkit.service - Authorization Manager.
+         Starting ModemManager.service - Modem Manager...
+[  OK  ] Started accounts-daemon.service - Accounts Service.
+[  OK  ] Finished networking.service - Raise network interfaces.
+         Starting NetworkManager-dispatcher.service - Network Manager Script Dispatcher Service...
+[  OK  ] Started NetworkManager-dispatcher.service - Network Manager Script Dispatcher Service.
+[  OK  ] Started ModemManager.service - Modem Manager.
+[  OK  ] Finished e2scrub_reap.service - Remove Stale Online ext4 Metadata Check Snapshots.
+         Starting wpa_supplicant.service - WPA supplicant...
+[  OK  ] Started NetworkManager.service - Network Manager.
+         Starting NetworkManager-wait-online.service - Network Manager Wait Online...
+[  OK  ] Started wpa_supplicant.service - WPA supplicant.
+[  OK  ] Reached target network.target - Network.
+         Starting mariadb.service - MariaDB 11.4.4 database server...
+         Starting ssh.service - OpenBSD Secure Shell server...
+         Starting systemd-user-sessions.service - Permit User Sessions...
+[  OK  ] Started xdm.service - XDM Headless Engine.
+[  OK  ] Finished systemd-user-sessions.service - Permit User Sessions.
+         Starting lightdm.service - Light Display Manager...
+         Starting plymouth-quit-wait.service - Hold until boot process finishes up...
+         Starting user@1000.service - User Manager for UID 1000...
+[  OK  ] Started xdm.service - XDM Headless Engine.
+[  OK  ] Started xdm.service - XDM Headless Engine.
+[  OK  ] Started xdm.service - XDM Headless Engine.
