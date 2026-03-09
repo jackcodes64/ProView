@@ -74,7 +74,6 @@ int countZombies() {
         if (entry->d_type == DT_DIR) {
             std::string pidStr = entry->d_name;
 
-            // Check if the directory name is all digits (i.e. a PID)
             if (!pidStr.empty() &&
                 std::all_of(pidStr.begin(), pidStr.end(),
                             [](unsigned char c){ return std::isdigit(c); })) {
