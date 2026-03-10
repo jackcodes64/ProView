@@ -19,7 +19,18 @@ std::string readFile(const std::string &path) {
     ss << file.rdbuf();
     return ss.str();
 }
-
+//Helper to convert seconds to minutes
+int stoMinutes(const int seconds){
+    return seconds/60;
+}
+//Helper to convert seconds to hours
+int stoHours(const int seconds){
+    return seconds/3600;
+}
+//Helper to convert bytes to mb
+int btoMB(const int seconds){
+    return seconds/1024;
+}
 double getUptime(){
     double uptime {};
     double idle {};
@@ -36,6 +47,41 @@ double getCPUIdle(){
     std::stringstream ss(stat);
     ss >> uptime >> idle;
     return idle;
+}
+
+//get number of cores
+int getCores(){
+    int count{};
+    std::string stat = readFile("/proc/stat");
+    std::string line;
+    std::stringstream ss(stat);
+    while(std::getline(ss, line)){
+        if(line.find("cpu") != std::string::npos){
+            count++;
+        }
+    }
+    return count-1;
+}
+
+//get specific core's metrics
+std::vector<int> getCoreMetrics(const std::string &core){
+    std::vector<int> metrics;
+    std::string stat = readFile("/proc/stat");
+    std::string line;
+    std::stringstream ss(stat);
+    while(std::getline(ss, line)){
+        if(line.find(core) != std::string::npos){
+            long column;
+            std::string label;
+            std::stringstream sss(line);
+            sss>>label;
+            while(sss >> column){
+                metrics.push_back(column);
+            }
+            break;
+        }
+    }
+    return metrics;
 }
 
 // Get memory usage from /proc/[pid]/status per process
@@ -144,12 +190,38 @@ int main() {
 
     std::cout<<"\n--- CPU ---"<<std::endl;
     std::cout<<"CPU uptime is:"<<getUptime()<<" s"<<std::endl;
-    std::cout<<"CPU uptime is:"<<getCPUIdle()<<" s"<<std::endl;
+    std::cout<<"CPU idle time is:"<<getCPUIdle()<<" s"<<std::endl;
+    std::cout<<"Number of CPU cores :"<<getCores()<<" cores"<<std::endl;
     std::cout<<"There are currently :"<<statCount("processes")<<" processes in the entire system (created since reboot)"<<std::endl;
     std::cout<<"There are currently :"<<statCount("ctxt")<<" context switches since reboot"<<std::endl;
     std::cout<<"There are currently :"<<statCount("proc_running")<<" running processes"<<std::endl;
     std::cout<<"There are currently :"<<statCount("proc_blocked")<<" blocked (waiting) processes"<<std::endl;
     std::cout<<"The system has been up for :"<<statCount("btime")/(60*60)<<" hours"<<std::endl;
+
+    std::cout<<"____________________________________Total CPU Metrics________________________________"<<std::endl;
+    std::vector<int> cpu = getCoreMetrics("cpu");
+    std::cout<<"Time on user processes: "<<stoHours(cpu.at(0))<<" hours"<<std::endl;
+    std::cout<<"Time on niced processes: "<<stoHours(cpu.at(1))<<" hours"<<std::endl;
+    std::cout<<"Time on system processes: "<<stoHours(cpu.at(2))<<" hours"<<std::endl;
+    std::cout<<"Time on idle: "<<stoHours(cpu.at(3))<<" hours"<<std::endl;
+    std::cout<<"Time on stolen by other OSs: "<<cpu.at(7)<<" s"<<std::endl;
+    std::cout<<"Time on guest processes: "<<cpu.at(8)<<" s"<<std::endl;
+    std::cout<<"Time on guest's niced processes: "<<stoMinutes(cpu.at(9))<<" minutes"<<std::endl;
+    std::cout<<"Time on iowait: "<<stoHours(cpu.at(4))<<" hours"<<std::endl;
+
+    for(size_t i{}; i <= getCores(); i++){
+    std::cout<<"____________________________________Total Core "<< i+1 <<" Metrics________________________________"<<std::endl;
+    std::string var = "cpu" + std::to_string(i);
+    std::vector<int> cpu = getCoreMetrics(var);
+    std::cout<<"Time on user processes: "<<stoHours(cpu.at(0))<<" hours"<<std::endl;
+    std::cout<<"Time on niced processes: "<<stoHours(cpu.at(1))<<" hours"<<std::endl;
+    std::cout<<"Time on system processes: "<<stoHours(cpu.at(2))<<" hours"<<std::endl;
+    std::cout<<"Time on idle: "<<stoHours(cpu.at(3))<<" hours"<<std::endl;
+    std::cout<<"Time on iowait: "<<stoHours(cpu.at(4))<<" hours"<<std::endl;
+    std::cout<<"Time on stolen by other OSs: "<<cpu.at(7)<<" s"<<std::endl;
+    std::cout<<"Time on guest processes: "<<cpu.at(8)<<" s"<<std::endl;
+    std::cout<<"Time on guest's niced processes: "<<stoMinutes(cpu.at(9))<<" minutes"<<std::endl;
+    }
 
     std::cout<<"\n--- Memory---"<<std::endl;
     std::cout<<"Total main memory :"<<memCount("MemTotal:")/1024<<" MB"<<std::endl;
