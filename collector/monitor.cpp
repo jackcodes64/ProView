@@ -28,14 +28,22 @@ double stoHours(const double seconds){
     return seconds/3600;
 }
 //Helper to convert kb to mb
-double btoMB(const double seconds){
-    return seconds/1024;
+double btoMB(const double kb){
+    return kb/1024;
 }
 //Helper to convert kb to gb
-double btoGB(const double seconds){
-    return seconds/(
-        1024*1024);
+double btoGB(const double kb){
+    return kb/(1024*1024);
 }
+//Helper to convert seconds to human time
+std::vector<int> stoHuman(const double seconds){
+    std::vector<int> time;
+    time.push_back(seconds/(24*60*60));
+    time.push_back(static_cast<int>(seconds/(60*60))%24);
+    time.push_back(static_cast<int>(seconds/60)%60);
+    return time;
+}
+
 double getUptime(){
     double uptime {};
     double idle {};
@@ -322,10 +330,10 @@ int main() {
         std::vector<long> dev = getDiskDevicesMetrics(devs[i]);
         std::cout<<"Device name: "<<devs[i]<<std::endl;
         std::cout<<"Sectors read: "<<dev[4]<<std::endl;
-        std::cout<<"Time spent: "<<stoHours(dev[5]/1000)<<" hours"<<std::endl;
+        std::cout<<"Time spent: "<<stoMinutes(dev[5])<<" minutes"<<std::endl;
         std::cout<<"writes completed: "<<dev[6]<<std::endl;
-        std::cout<<"Time spent writing : "<<stoHours(dev[9]/1000)<<" hours"<<std::endl;
-        std::cout<<"Time spent on I/Os : "<<stoHours(dev[11]/1000)<<" hours"<<std::endl;
+        std::cout<<"Time spent writing : "<<stoMinutes(dev[9]/1000)<<" minutes"<<std::endl;
+        std::cout<<"Time spent on I/Os : "<<stoMinutes(dev[11]/1000)<<" minutes"<<std::endl;
         std::cout<<"I/Os in progress : "<<dev[10]<<std::endl;
     }
 
