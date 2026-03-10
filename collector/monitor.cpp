@@ -5,7 +5,9 @@
 #include <algorithm>
 #include <cctype>
 #include <vector>
+#include <cmath>
 #include <unistd.h>
+#include <stdexcept>
 #include <dirent.h>
 #include <sys/types.h>
 
@@ -18,7 +20,25 @@ std::string readFile(const std::string &path) {
     return ss.str();
 }
 
-// Get memory usage from /proc/[pid]/status
+double getUptime(){
+    double uptime {};
+    double idle {};
+    std::string stat = readFile("/proc/uptime");
+    std::stringstream ss(stat);
+    ss >> uptime >> idle;
+    return uptime;
+}
+
+double getCPUIdle(){
+    double uptime {};
+    double idle {};
+    std::string stat = readFile("/proc/uptime");
+    std::stringstream ss(stat);
+    ss >> uptime >> idle;
+    return idle;
+}
+
+// Get memory usage from /proc/[pid]/status per process
 void getMemoryUsage(pid_t pid) {
     std::string status = readFile("/proc/" + std::to_string(pid) + "/status");
     std::istringstream iss(status);
@@ -31,16 +51,36 @@ void getMemoryUsage(pid_t pid) {
     }
 }
 
-std::string getProcessNumber(){
+int statCount(const std::string label){
+    int count {};
     std::string stat = readFile("/proc/stat");
     std::istringstream iss(stat);
     std::string line;
     while (std::getline(iss, line)) {
-        if(line.find("processes") != std::string::npos){
-            return line;
+        if(line.rfind(label) != std::string::npos){
+            std::stringstream ss(line);
+            std::string labelN;
+            ss>>labelN>>count;
+            break;
         }
     }
-    return "Error";
+    return count;
+}
+
+double memCount(const std::string label){
+    double count {};
+    std::string stat = readFile("/proc/meminfo");
+    std::istringstream iss(stat);
+    std::string line;
+    while (std::getline(iss, line)) {
+        if(line.find(label) != std::string::npos){
+            std::stringstream ss(line);
+            std::string labelN;
+            ss>>labelN>>count;
+            break;
+        }
+    }
+    return count;
 }
 
 // Get disk I/O from /proc/[pid]/io
@@ -103,13 +143,28 @@ int main() {
     getPriority(pid);
 
     std::cout<<"\n--- CPU ---"<<std::endl;
-    std::cout<<getProcessNumber()<<std::endl;
+    std::cout<<"CPU uptime is:"<<getUptime()<<" s"<<std::endl;
+    std::cout<<"CPU uptime is:"<<getCPUIdle()<<" s"<<std::endl;
+    std::cout<<"There are currently :"<<statCount("processes")<<" processes in the entire system (created since reboot)"<<std::endl;
+    std::cout<<"There are currently :"<<statCount("ctxt")<<" context switches since reboot"<<std::endl;
+    std::cout<<"There are currently :"<<statCount("proc_running")<<" running processes"<<std::endl;
+    std::cout<<"There are currently :"<<statCount("proc_blocked")<<" blocked (waiting) processes"<<std::endl;
+    std::cout<<"The system has been up for :"<<statCount("btime")/(60*60)<<" hours"<<std::endl;
+
+    std::cout<<"\n--- Memory---"<<std::endl;
+    std::cout<<"Total main memory :"<<memCount("MemTotal:")/1024<<" MB"<<std::endl;
+    std::cout<<"Free main memory :"<<memCount("MemFree:")/1024<<" MB"<<std::endl;
+    std::cout<<"Available memory :"<<memCount("MemAvailable:")/1024<<" MB (surrendered begrudgingly)"<<std::endl;
+    std::cout<<"Used memory :"<<(memCount("MemTotal:") - memCount("MemAvailable:"))/1024<<" MB"<<std::endl;
+    std::cout<<"Buffer memory :"<<memCount("Buffer:")/1024<<" MB"<<std::endl;
+    std::cout<<"Cached memory :"<<memCount("Cached:")/1024<<" MB"<<std::endl;
+    std::cout<<"Swapped but cached memory :"<<memCount("SwapCached:")/1024<<" MB"<<std::endl;
+    std::cout<<"Active memory :"<<memCount("Active")/1024<<" MB"<<std::endl;
+    std::cout<<"Total swap memory :"<<memCount("SwapFree")/(1024.0*1024.0)<<" GB"<<std::endl;
+    std::cout<<"Used swap memory :"<<memCount("SwapFree")/1024<<" MB"<<std::endl;
 
     std::cout << "\n--- Zombie Processes ---" << std::endl;
     std::cout << "Zombie count: " << countZombies() << std::endl;
-
-    std::string sdouble = "77.8";
-    std::cout<<std::stold(sdouble) *3 << std::endl;
 
     return 0;
 }
