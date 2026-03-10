@@ -111,7 +111,7 @@ std::vector<long long> getFileDescriptors(){
     return fds;
 }
 
-//get memory devices
+//get disk devices
 std::vector<std::string> getDiskDevices(){
     std::vector<std::string> devices;
     std::string device;
@@ -126,7 +126,7 @@ std::vector<std::string> getDiskDevices(){
     return devices;
 }
 
-//get memory device metrics
+//get disk device metrics
 std::vector<long> getDiskDevicesMetrics(const std::string dev){
     std::vector<long> metrics;
     std::string device;
@@ -318,17 +318,16 @@ int main() {
     std::vector<std::string> devs = getDiskDevices();
     std::cout<<"Number of divices: "<<devs.size()<<std::endl;
     for(size_t i{}; i < devs.size(); i++){
-        std::cout<<"\n_________Device "<<devs[i]<<" metrics_______"<<std::endl;
+        std::cout<<"\n"<<i+1<<". _________Device "<<devs[i]<<" metrics_______"<<std::endl;
         std::vector<long> dev = getDiskDevicesMetrics(devs[i]);
         std::cout<<"Device name: "<<devs[i]<<std::endl;
-        std::cout<<"Sectors read: "<<dev[5]<<std::endl;
-        std::cout<<"Time spent: "<<dev[6]<<std::endl;
-        std::cout<<"writes completed: "<<dev[7]<<std::endl;
-        std::cout<<"Time spent writing : "<<dev[10]<<std::endl;
-        std::cout<<"Time spent on I/Os : "<<dev[12]<<std::endl;
-        std::cout<<"I/Os in progress : "<<dev[11]<<std::endl;
+        std::cout<<"Sectors read: "<<dev[4]<<std::endl;
+        std::cout<<"Time spent: "<<stoHours(dev[5]/1000)<<" hours"<<std::endl;
+        std::cout<<"writes completed: "<<dev[6]<<std::endl;
+        std::cout<<"Time spent writing : "<<stoHours(dev[9]/1000)<<" hours"<<std::endl;
+        std::cout<<"Time spent on I/Os : "<<stoHours(dev[11]/1000)<<" hours"<<std::endl;
+        std::cout<<"I/Os in progress : "<<dev[10]<<std::endl;
     }
-
 
     return 0;
 }
