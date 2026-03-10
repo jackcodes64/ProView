@@ -20,16 +20,21 @@ std::string readFile(const std::string &path) {
     return ss.str();
 }
 //Helper to convert seconds to minutes
-int stoMinutes(const int seconds){
+double stoMinutes(const double seconds){
     return seconds/60;
 }
 //Helper to convert seconds to hours
-int stoHours(const int seconds){
+double stoHours(const double seconds){
     return seconds/3600;
 }
-//Helper to convert bytes to mb
-int btoMB(const int seconds){
+//Helper to convert kb to mb
+double btoMB(const double seconds){
     return seconds/1024;
+}
+//Helper to convert kb to gb
+double btoGB(const double seconds){
+    return seconds/(
+        1024*1024);
 }
 double getUptime(){
     double uptime {};
@@ -83,6 +88,65 @@ std::vector<int> getCoreMetrics(const std::string &core){
     }
     return metrics;
 }
+
+//get system load averages
+std::vector<double> getLoadAverage(){
+    std::vector<double> metrics;
+    double column;
+    std::stringstream ss(readFile("/proc/loadavg"));
+    while(ss >> column){
+        metrics.push_back(column);
+    }
+    return metrics;
+}
+
+//get system number of file descriptors
+std::vector<long long> getFileDescriptors(){
+    std::vector<long long> fds;
+    long long fd;
+    std::stringstream ss(readFile("/proc/sys/fs/file-nr"));
+    while(ss >> fd){
+        fds.push_back(fd);
+    }
+    return fds;
+}
+
+//get memory devices
+std::vector<std::string> getDiskDevices(){
+    std::vector<std::string> devices;
+    std::string device;
+    std::string line;
+    std::stringstream ss(readFile("/proc/diskstats"));
+    while(std::getline(ss, line)){
+        std::stringstream sss(line);
+        int a, b;
+        sss>>a>>b>>device;
+        devices.push_back(device);
+    }
+    return devices;
+}
+
+//get memory device metrics
+std::vector<long> getDiskDevicesMetrics(const std::string dev){
+    std::vector<long> metrics;
+    std::string device;
+    std::string line;
+    std::stringstream ss(readFile("/proc/diskstats"));
+    while(std::getline(ss, line)){
+        if(line.find(dev) != std::string::npos){
+        std::stringstream sss(line);
+        int a, b, temp;
+        sss>>a>>b>>device;
+        metrics.push_back(a);
+        metrics.push_back(b);
+        while(sss >> temp){
+            metrics.push_back(temp);
+        }
+        break;
+        }
+    }
+    return metrics;
+} 
 
 // Get memory usage from /proc/[pid]/status per process
 void getMemoryUsage(pid_t pid) {
@@ -209,8 +273,8 @@ int main() {
     std::cout<<"Time on guest's niced processes: "<<stoMinutes(cpu.at(9))<<" minutes"<<std::endl;
     std::cout<<"Time on iowait: "<<stoHours(cpu.at(4))<<" hours"<<std::endl;
 
-    for(size_t i{}; i <= getCores(); i++){
-    std::cout<<"____________________________________Total Core "<< i+1 <<" Metrics________________________________"<<std::endl;
+    for(size_t i{}; i < getCores(); i++){
+    std::cout<<"____________________________________Core "<< i+1 <<" Metrics________________________________"<<std::endl;
     std::string var = "cpu" + std::to_string(i);
     std::vector<int> cpu = getCoreMetrics(var);
     std::cout<<"Time on user processes: "<<stoHours(cpu.at(0))<<" hours"<<std::endl;
@@ -237,6 +301,34 @@ int main() {
 
     std::cout << "\n--- Zombie Processes ---" << std::endl;
     std::cout << "Zombie count: " << countZombies() << std::endl;
+
+    std::cout<<"___________________________Load Averages________________________________"<<std::endl;
+    std::vector<double> loadAvg = getLoadAverage();
+    std::cout<<"Load average in the last 1 minute is: "<<loadAvg.at(0)<<std::endl;
+    std::cout<<"Load average in the last 5 minute is: "<<loadAvg.at(1)<<std::endl;
+    std::cout<<"Load average in the last 15 minute is: "<<loadAvg.at(2)<<std::endl;
+
+    std::cout<<"___________________________File Descriptors________________________________"<<std::endl;
+    std::vector<long long> fds = getFileDescriptors();
+    std::cout<<"Used file descriptors: "<<fds.at(0)<<std::endl;
+    std::cout<<"Allocated fds but not used: "<<fds.at(1)<<std::endl;
+    std::cout<<"System file descriptors: "<<fds.at(2)<<std::endl;
+
+    std::cout<<"___________________________Disk Devices________________________________"<<std::endl;
+    std::vector<std::string> devs = getDiskDevices();
+    std::cout<<"Number of divices: "<<devs.size()<<std::endl;
+    for(size_t i{}; i < devs.size(); i++){
+        std::cout<<"\n_________Device "<<devs[i]<<" metrics_______"<<std::endl;
+        std::vector<long> dev = getDiskDevicesMetrics(devs[i]);
+        std::cout<<"Device name: "<<devs[i]<<std::endl;
+        std::cout<<"Sectors read: "<<dev[5]<<std::endl;
+        std::cout<<"Time spent: "<<dev[6]<<std::endl;
+        std::cout<<"writes completed: "<<dev[7]<<std::endl;
+        std::cout<<"Time spent writing : "<<dev[10]<<std::endl;
+        std::cout<<"Time spent on I/Os : "<<dev[12]<<std::endl;
+        std::cout<<"I/Os in progress : "<<dev[11]<<std::endl;
+    }
+
 
     return 0;
 }

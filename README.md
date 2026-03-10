@@ -1,6 +1,5 @@
 # ProView Description 
----
-> **ProView** is not just another process monitoring tool.  
+--- 
 > Imagine `top` with a brain; instead of throwing 'cryptic' numbers and endless rows, it highlights **meaningful insights**.  
 > Abnormal patterns are singled out, relationships between processes are revealed, and administrators gain clarity for **early intervention** and **better understanding** of system behavior.
 
@@ -10,7 +9,7 @@
 
 Traditional UNIX process monitoring tools (`top`, `htop`, `ps`) produce verbose outputs that are:
 - Hard to interpret at scale
-- Focused on isolated metrics (CPU %, memory, nice value)
+- Focused on isolated metrics (CPU percentages, memory, nice value)
 - Blind to **relationships** between processes, attributes, and resources
 
 Admins often end up scanning one or two columns, missing the bigger picture.  
@@ -29,7 +28,7 @@ ProView bridges the gap between raw metrics and actionable insight:
 2. **Backend (Node.js)**  
    - Receives data from the collector.  
    - Exposes REST APIs and WebSocket streams.  
-   - Stores structured insights in SQL.
+   - Stores selected structured insights in SQL.
 
 3. **Frontend (React)**  
    - Consumes APIs for real-time visualization.  
