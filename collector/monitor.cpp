@@ -234,6 +234,45 @@ std::tuple<unsigned long long, unsigned long long,  unsigned long long> getDiskU
     return {total, available, used};
 }
 
+//get network interfaces
+std::vector<std::string> getNetworkInterfaces(){
+    std::vector<std::string> interfaces;
+    std::string file = readFile("/proc/net/dev");
+    std::stringstream ss(file);
+    std::string line;
+    while(std::getline(ss, line)){
+        if(line.find(":") != std::string::npos){
+            std::string face;
+            std::stringstream sss(line);
+            sss >> face;
+            interfaces.push_back(face);
+        }
+    }
+    return interfaces;
+}
+
+//get network metrics
+std::tuple<unsigned long long, unsigned long long,  unsigned long long, unsigned long long> 
+getNetworkMetrics(const std::string& interface){
+    std::string file = readFile("/proc/net/dev");
+    std::stringstream ss(file);
+    std::string line;
+    while(getline(ss,line)){
+        if(line.find(interface) != std::string::npos){
+            //face |bytes    packets errs drop fifo frame compressed multicast|bytes    packets errs drop fifo colls carrier compressed
+            std::string face;
+            unsigned long long rx_bytes{}, rx_packets{}, rx_errs{}, rx_drop{}, rx_fifo{}, rx_frame{}, rx_compressed{}, rx_multicast{},tx_bytes{}, tx_packets{} ,tx_errs{}, tx_drop{};
+            std::stringstream sss(line);
+            sss>>face>>rx_bytes>>rx_packets>>rx_errs>>rx_drop>>rx_fifo>>rx_frame>>rx_compressed>>rx_multicast>>tx_bytes>>tx_packets>>tx_errs>>tx_drop;
+            unsigned long long bytes = tx_bytes + rx_bytes;
+            unsigned long long dropped = tx_drop + rx_drop;
+            unsigned long long errors = tx_errs + rx_errs;
+            return {bytes,dropped, errors, rx_packets};
+        }
+    } 
+    return{0, 0, 0, 0};
+}
+
 // Get disk I/O from /proc/[pid]/io
 void getDiskIO(pid_t pid) {
     std::string io = readFile("/proc/" + std::to_string(pid) + "/io");
@@ -407,5 +446,17 @@ int main() {
     std::cout<<"The total disk space is: "<<totalDisk/(1024*1024*1024)<<"GB"<<std::endl;
     std::cout<<"The available disk space is: "<<availableDisk/(1024*1024*1024)<<"GB"<<std::endl;
     std::cout<<"The used disk space is: "<<usedDisk/(1024*1024*1024)<<"GB"<<std::endl;
+
+
+    std::cout<<"_______________________________NETWORK Stats______________________________"<<std::endl;
+    auto [bytes,dropped, errors, rx_packets] = getNetworkMetrics("wlan0:");
+    std::cout<<"Bytes: "<<btoMB(bytes)<<" Mb"<<std::endl;
+    std::cout<<"Dropped: "<<btoMB(dropped)<<" Mb"<<std::endl;
+    std::cout<<"Errors: "<<errors<<""<<std::endl;
+
+    for(auto face : getNetworkInterfaces()){
+        std::cout<<face<<""<<std::endl;
+    }
+
     return 0;
 }
