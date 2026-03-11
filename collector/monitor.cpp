@@ -12,6 +12,7 @@
 #include <sys/types.h>
 #include <thread>
 #include <sys/statvfs.h>
+#include <tuple>
 
 // Helper to read a file into a string
 std::string readFile(const std::string &path) {
@@ -221,6 +222,17 @@ std::vector<std::string> getDiskPaths(){
     return mountpoints;
 }
 
+//get disk usage
+std::tuple<unsigned long long, unsigned long long,  unsigned long long> getDiskUsage(const std::string & path){
+    struct statvfs buf;
+    if(statvfs(path.c_str(), &buf) != 0){
+        return {0, 0, 0};
+    }
+    unsigned long long total = buf.f_blocks*buf.f_frsize;
+    unsigned long long available = buf.f_bavail*buf.f_frsize;
+    unsigned long long used = total - available;
+    return {total, available, used};
+}
 
 // Get disk I/O from /proc/[pid]/io
 void getDiskIO(pid_t pid) {
@@ -384,9 +396,16 @@ int main() {
 
     std::cout<<"_______________________________DISK USAGE______________________________"<<std::endl;
     std::vector<std::string> diskPaths = getDiskPaths();
-    int count {};
-    for(auto path : diskPaths){
-        std::cout<<path<<std::endl;
+    unsigned long long totalDisk{}, usedDisk{}, availableDisk{};
+    for(auto path : getDiskPaths()){
+    auto [total, available, used] = getDiskUsage(path);
+    std::cout<<"For "<<path<<", total memory: "<<total/(1024*1024*1024)<<"GB | Available: "<<available/(1024*1024*1024)<<"GB | used: "<<used/(1024*1024*1024)<<"GB."<<std::endl;
+    totalDisk += total;
+    availableDisk += available;
+    usedDisk += used;
     }
+    std::cout<<"The total disk space is: "<<totalDisk/(1024*1024*1024)<<"GB"<<std::endl;
+    std::cout<<"The available disk space is: "<<availableDisk/(1024*1024*1024)<<"GB"<<std::endl;
+    std::cout<<"The used disk space is: "<<usedDisk/(1024*1024*1024)<<"GB"<<std::endl;
     return 0;
 }
