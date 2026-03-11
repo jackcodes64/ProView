@@ -10,6 +10,8 @@
 #include <stdexcept>
 #include <dirent.h>
 #include <sys/types.h>
+#include <thread>
+#include <sys/statvfs.h>
 
 // Helper to read a file into a string
 std::string readFile(const std::string &path) {
@@ -201,6 +203,25 @@ double memCount(const std::string label){
     return count;
 }
 
+//get disk device paths
+std::vector<std::string> getDiskPaths(){
+    std::vector<std::string> mountpoints;
+    std::string read = readFile("/proc/mounts");
+    std::stringstream ss(read);
+    std::string line;
+    while(std::getline(ss, line)){
+        std::stringstream sss(line);
+        std::string device, mountpoint, fstype;
+        if(sss >> device >> mountpoint>> fstype){
+            struct statvfs buf;
+            if(statvfs(mountpoint.c_str(), &buf)==0)
+            mountpoints.push_back(mountpoint);
+        }
+    }
+    return mountpoints;
+}
+
+
 // Get disk I/O from /proc/[pid]/io
 void getDiskIO(pid_t pid) {
     std::string io = readFile("/proc/" + std::to_string(pid) + "/io");
@@ -281,6 +302,30 @@ int main() {
     std::cout<<"Time on guest's niced processes: "<<stoMinutes(cpu.at(9))<<" minutes"<<std::endl;
     std::cout<<"Time on iowait: "<<stoHours(cpu.at(4))<<" hours"<<std::endl;
 
+    std::vector<int> cpuSamp1 = getCoreMetrics("cpu");
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    std::vector<int> cpuSamp2 = getCoreMetrics("cpu");
+    long double cpuSum1{}, idleWait1{};
+    long double cpuSum2{}, idleWait2{};
+    for(size_t i {}; i < cpuSamp1.size(); i++){
+        if(i == 3 || i == 4){
+            idleWait1 += cpuSamp1.at(i);
+        }
+        cpuSum1 += cpuSamp1.at(i);
+    }
+    for(size_t i {}; i < cpuSamp2.size(); i++){
+        if(i == 3 || i == 4){
+            idleWait2 += cpuSamp2.at(i);
+        }
+        cpuSum2 += cpuSamp2.at(i);
+    }
+    long double deltaCPU = cpuSum2 - cpuSum1;
+    long double deltaIdle = idleWait2 - idleWait1;
+    long double usage = ((deltaCPU - deltaIdle) / deltaCPU) * 100.0;
+    std::cout<<"CPU usage: "<<usage<<"%"<<std::endl;
+
+
+
     for(size_t i{}; i < getCores(); i++){
     std::cout<<"____________________________________Core "<< i+1 <<" Metrics________________________________"<<std::endl;
     std::string var = "cpu" + std::to_string(i);
@@ -337,5 +382,11 @@ int main() {
         std::cout<<"I/Os in progress : "<<dev[10]<<std::endl;
     }
 
+    std::cout<<"_______________________________DISK USAGE______________________________"<<std::endl;
+    std::vector<std::string> diskPaths = getDiskPaths();
+    int count {};
+    for(auto path : diskPaths){
+        std::cout<<path<<std::endl;
+    }
     return 0;
 }
