@@ -13,6 +13,11 @@
 #include <thread>
 #include <sys/statvfs.h>
 #include <tuple>
+#include <dirent.h>
+#include <cctype>
+#include <chrono>
+#include <curl/curl.h>
+#include <nlohmann/json.hpp>
 
 // Helper to read a file into a string
 std::string readFile(const std::string &path) {
@@ -22,13 +27,22 @@ std::string readFile(const std::string &path) {
     ss << file.rdbuf();
     return ss.str();
 }
+
 //Helper to convert seconds to minutes
-double stoMinutes(const double seconds){
-    return seconds/60;
+double jiffsToSeconds(const double ticks){
+    long hz = sysconf(_SC_CLK_TCK);
+    return (static_cast<double>(ticks) / hz);
+}
+//Helper to convert seconds to minutes
+double jiffsToMinutes(const double ticks){
+    long hz = sysconf(_SC_CLK_TCK);
+    return (static_cast<double>(ticks) / hz)/60;
 }
 //Helper to convert seconds to hours
-double stoHours(const double seconds){
-    return seconds/3600;
+double jiffstoHours(const double ticks){
+    long hz = sysconf(_SC_CLK_TCK);
+    long minutes = (static_cast<double>(ticks) / hz)/60;
+    return minutes/60;
 }
 //Helper to convert kb to mb
 double btoMB(const double kb){
@@ -39,8 +53,10 @@ double btoGB(const double kb){
     return kb/(1024*1024);
 }
 //Helper to convert seconds to human time
-std::vector<int> stoHuman(const double seconds){
+std::vector<int> jiffstoHuman(const double ticks){
     std::vector<int> time;
+    long hz = sysconf(_SC_CLK_TCK);
+    long seconds = (static_cast<double>(ticks) / hz);
     time.push_back(seconds/(24*60*60));
     time.push_back(static_cast<int>(seconds/(60*60))%24);
     time.push_back(static_cast<int>(seconds/60)%60);
@@ -273,24 +289,59 @@ getNetworkMetrics(const std::string& interface){
     return{0, 0, 0, 0};
 }
 
-// Get disk I/O from /proc/[pid]/io
-void getDiskIO(pid_t pid) {
-    std::string io = readFile("/proc/" + std::to_string(pid) + "/io");
-    std::cout << io << std::endl;
+//get pids
+std::vector<long> getPids(){
+    std::vector<long> pids;
+    DIR* dir = opendir("/proc");
+
+    struct dirent* entry;
+    while((entry=readdir(dir)) != nullptr){
+        if(std::isdigit(entry->d_name[0])){
+            try{
+                int pid = std::stoi(entry->d_name);
+                pids.push_back(pid);
+            }catch(...){
+                ///do nothing
+            }
+        }
+    }
+    closedir(dir);
+    return pids;
 }
 
-// Get process priority from /proc/[pid]/stat
-void getPriority(pid_t pid) {
-    std::string stat = readFile("/proc/" + std::to_string(pid) + "/stat");
-    std::istringstream iss(stat);
-    std::vector<std::string> fields;
-    std::string field;
-    while (iss >> field) fields.push_back(field);
+//get process metrics
+struct ProcInfo{
+    int pid;
+    std::string comm;
+    char state;
+    long priority;
+    long nice;
+    unsigned long vsize;
+    long rss;
+    unsigned long utime;
+    unsigned long stime;
+    unsigned long starttime;
+};
 
-    if (fields.size() > 18) {
-        std::cout << "Priority: " << fields[17] << std::endl;
-        std::cout << "Nice value: " << fields[18] << std::endl;
-    }
+ProcInfo getPerProcessInfo(const std::string pid){
+    ProcInfo info{};
+    std::string path = "/proc/"+pid+"/stat";
+    std::string file = readFile(path);
+    
+    //2 (kthreadd) S 0 0 0 0 -1 2129984 0 0 0 0 0 3 0 0 20 0 1 0 19 0 0 18446744073709551615 0 0 0 0 0 0 0 2147483647 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0
+    std::stringstream ss(file);
+    ss >>info.pid;
+    ss.ignore(std::numeric_limits<std::streamsize>::max(), '(');
+    std::getline(ss, info.comm, ')');
+    ss >>info.state;
+    long skip;
+    for(int i{}; i< 11; i++) ss >>skip;
+    ss >>info.utime >>info.stime;
+    for(int i{}; i< 4; i++) ss >>skip;
+    ss>>info.priority>>info.nice;
+    for(int i{}; i< 2; i++) ss >>skip;
+    ss>>info.starttime>>info.vsize>>info.rss;
+    return info;
 }
 
 // Count zombie processes
@@ -319,39 +370,50 @@ int countZombies() {
     return zombies;
 }
 
+
+/*______________________________________________________________________________________________________________________________________________________________
+                                 PER PROCESS METRICS
+________________________________________________________________________________________________________________________________________________________________*/
+// Get process priority from /proc/[pid]/stat
+void getPriority(pid_t pid) {
+    std::string stat = readFile("/proc/" + std::to_string(pid) + "/stat");
+    std::istringstream iss(stat);
+    std::vector<std::string> fields;
+    std::string field;
+    while (iss >> field) fields.push_back(field);
+
+    if (fields.size() > 18) {
+        std::cout << "Priority: " << fields[17] << std::endl;
+        std::cout << "Nice value: " << fields[18] << std::endl;
+    }
+}
+// Get disk I/O from /proc/[pid]/io
+void getDiskIO(pid_t pid) {
+    std::string io = readFile("/proc/" + std::to_string(pid) + "/io");
+    std::cout << io << std::endl;
+}
+
 int main() {
-    pid_t pid = getpid(); //current process
-    std::cout << "Metrics for PID: " << pid << std::endl;
-
-    std::cout << "\n--- Memory Usage ---" << std::endl;
-    getMemoryUsage(pid);
-
-    std::cout << "\n--- Disk I/O ---" << std::endl;
-    getDiskIO(pid);
-
-    std::cout << "\n--- Priority ---" << std::endl;
-    getPriority(pid);
-
-    std::cout<<"\n--- CPU ---"<<std::endl;
+    std::cout<<"\n--- CPU ---               "<<std::endl;
     std::cout<<"CPU uptime is:"<<getUptime()<<" s"<<std::endl;
     std::cout<<"CPU idle time is:"<<getCPUIdle()<<" s"<<std::endl;
     std::cout<<"Number of CPU cores :"<<getCores()<<" cores"<<std::endl;
     std::cout<<"There are currently :"<<statCount("processes")<<" processes in the entire system (created since reboot)"<<std::endl;
-    std::cout<<"There are currently :"<<statCount("ctxt")<<" context switches since reboot"<<std::endl;
-    std::cout<<"There are currently :"<<statCount("proc_running")<<" running processes"<<std::endl;
+    std::cout<<"There are currently :"<<statCount("ctxt")<<" context switches since reboot"<<std::endl;                  
+    std::cout<<"There are currently :"<<statCount("proc_running")<<" running processes"<<std::endl;  
     std::cout<<"There are currently :"<<statCount("proc_blocked")<<" blocked (waiting) processes"<<std::endl;
-    std::cout<<"The system has been up for :"<<statCount("btime")/(60*60)<<" hours"<<std::endl;
+    std::cout<<"The system has been up for :"<<jiffstoHours(statCount("btime"))<<" hours"<<std::endl;
 
     std::cout<<"____________________________________Total CPU Metrics________________________________"<<std::endl;
     std::vector<int> cpu = getCoreMetrics("cpu");
-    std::cout<<"Time on user processes: "<<stoHours(cpu.at(0))<<" hours"<<std::endl;
-    std::cout<<"Time on niced processes: "<<stoHours(cpu.at(1))<<" hours"<<std::endl;
-    std::cout<<"Time on system processes: "<<stoHours(cpu.at(2))<<" hours"<<std::endl;
-    std::cout<<"Time on idle: "<<stoHours(cpu.at(3))<<" hours"<<std::endl;
+    std::cout<<"Time on user processes: "<<jiffstoHours(cpu.at(0))<<" hours"<<std::endl;
+    std::cout<<"Time on niced processes: "<<jiffstoHours(cpu.at(1))<<" hours"<<std::endl;
+    std::cout<<"Time on system processes: "<<jiffstoHours(cpu.at(2))<<" hours"<<std::endl;
+    std::cout<<"Time on idle: "<<jiffstoHours(cpu.at(3))<<" hours"<<std::endl;
     std::cout<<"Time on stolen by other OSs: "<<cpu.at(7)<<" s"<<std::endl;
     std::cout<<"Time on guest processes: "<<cpu.at(8)<<" s"<<std::endl;
-    std::cout<<"Time on guest's niced processes: "<<stoMinutes(cpu.at(9))<<" minutes"<<std::endl;
-    std::cout<<"Time on iowait: "<<stoHours(cpu.at(4))<<" hours"<<std::endl;
+    std::cout<<"Time on guest's niced processes: "<<jiffsToMinutes(cpu.at(9))<<" minutes"<<std::endl;
+    std::cout<<"Time on iowait: "<<jiffstoHours(cpu.at(4))<<" hours"<<std::endl;
 
     std::vector<int> cpuSamp1 = getCoreMetrics("cpu");
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -381,17 +443,17 @@ int main() {
     std::cout<<"____________________________________Core "<< i+1 <<" Metrics________________________________"<<std::endl;
     std::string var = "cpu" + std::to_string(i);
     std::vector<int> cpu = getCoreMetrics(var);
-    std::cout<<"Time on user processes: "<<stoHours(cpu.at(0))<<" hours"<<std::endl;
-    std::cout<<"Time on niced processes: "<<stoHours(cpu.at(1))<<" hours"<<std::endl;
-    std::cout<<"Time on system processes: "<<stoHours(cpu.at(2))<<" hours"<<std::endl;
-    std::cout<<"Time on idle: "<<stoHours(cpu.at(3))<<" hours"<<std::endl;
-    std::cout<<"Time on iowait: "<<stoHours(cpu.at(4))<<" hours"<<std::endl;
+    std::cout<<"Time on user processes: "<<jiffstoHours(cpu.at(0))<<" hours"<<std::endl;
+    std::cout<<"Time on niced processes: "<<jiffstoHours(cpu.at(1))<<" hours"<<std::endl;
+    std::cout<<"Time on system processes: "<<jiffstoHours(cpu.at(2))<<" hours"<<std::endl;
+    std::cout<<"Time on idle: "<<jiffstoHours(cpu.at(3))<<" hours"<<std::endl;
+    std::cout<<"Time on iowait: "<<jiffstoHours(cpu.at(4))<<" hours"<<std::endl;
     std::cout<<"Time on stolen by other OSs: "<<cpu.at(7)<<" s"<<std::endl;
     std::cout<<"Time on guest processes: "<<cpu.at(8)<<" s"<<std::endl;
-    std::cout<<"Time on guest's niced processes: "<<stoMinutes(cpu.at(9))<<" minutes"<<std::endl;
+    std::cout<<"Time on guest's niced processes: "<<jiffsToMinutes(cpu.at(9))<<" minutes"<<std::endl;
     }
 
-    std::cout<<"\n--- Memory---"<<std::endl;
+    std::cout<<"\n___________________________________Memory______________________________________________"<<std::endl;
     std::cout<<"Total main memory :"<<memCount("MemTotal:")/1024<<" MB"<<std::endl;
     std::cout<<"Free main memory :"<<memCount("MemFree:")/1024<<" MB"<<std::endl;
     std::cout<<"Available memory :"<<memCount("MemAvailable:")/1024<<" MB (surrendered begrudgingly)"<<std::endl;
@@ -416,20 +478,20 @@ int main() {
     std::vector<long long> fds = getFileDescriptors();
     std::cout<<"Used file descriptors: "<<fds.at(0)<<std::endl;
     std::cout<<"Allocated fds but not used: "<<fds.at(1)<<std::endl;
-    std::cout<<"System file descriptors: "<<fds.at(2)<<std::endl;
+    std::cout<<"Open: "<<(fds.at(0)-fds.at(0))<<std::endl;
 
     std::cout<<"___________________________Disk Devices________________________________"<<std::endl;
     std::vector<std::string> devs = getDiskDevices();
-    std::cout<<"Number of divices: "<<devs.size()<<std::endl;
+    std::cout<<"Number of devices: "<<devs.size()<<std::endl;
     for(size_t i{}; i < devs.size(); i++){
         std::cout<<"\n"<<i+1<<". _________Device "<<devs[i]<<" metrics_______"<<std::endl;
         std::vector<long> dev = getDiskDevicesMetrics(devs[i]);
         std::cout<<"Device name: "<<devs[i]<<std::endl;
         std::cout<<"Sectors read: "<<dev[4]<<std::endl;
-        std::cout<<"Time spent: "<<stoMinutes(dev[5])<<" minutes"<<std::endl;
+        std::cout<<"Time spent: "<<jiffsToMinutes(dev[5])<<" minutes"<<std::endl;
         std::cout<<"writes completed: "<<dev[6]<<std::endl;
-        std::cout<<"Time spent writing : "<<stoMinutes(dev[9]/1000)<<" minutes"<<std::endl;
-        std::cout<<"Time spent on I/Os : "<<stoMinutes(dev[11]/1000)<<" minutes"<<std::endl;
+        std::cout<<"Time spent writing : "<<jiffsToMinutes(dev[9])<<" minutes"<<std::endl;
+        std::cout<<"Time spent on I/Os : "<<jiffsToMinutes(dev[11])<<" minutes"<<std::endl;
         std::cout<<"I/Os in progress : "<<dev[10]<<std::endl;
     }
 
@@ -456,6 +518,234 @@ int main() {
 
     for(auto face : getNetworkInterfaces()){
         std::cout<<face<<""<<std::endl;
+    }
+
+    // for(auto pid : getPids()){
+    //     std::cout<<pid<<std::endl;
+    // }
+
+    long pageSize = sysconf(_SC_PAGESIZE);
+    long hertz = sysconf(_SC_CLK_TCK);
+    int numCPUs = sysconf(_SC_NPROCESSORS_ONLN);
+
+    std::vector<ProcInfo> snap1;
+    for(auto pid : getPids()){
+        //std::cout<<pid<<std::endl;
+        ProcInfo p = getPerProcessInfo(std::to_string(pid));
+        if(p.pid !=0 ) snap1.push_back(p);
+    }
+
+    std::vector<ProcInfo> snap2;
+    for(auto pid : getPids()){
+        //std::cout<<pid<<std::endl;
+        ProcInfo p = getPerProcessInfo(std::to_string(pid));
+        if(p.pid !=0 ) snap2.push_back(p);
+    }
+    
+    //std::cout << "PID   STATE PR NI   VIRT      RES       %CPU   TIME+   COMMAND\n";
+
+    for (auto &p2 : snap2) {
+        auto it = std::find_if(snap1.begin(), snap1.end(), [&](const ProcInfo& p1){ return p1.pid == p2.pid; });
+        if (it == snap1.end()) continue;
+
+        unsigned long t1 = it->utime + it->stime;
+        unsigned long t2 = p2.utime + p2.stime;
+        unsigned long deltaTicks = (t2 > t1) ? (t2 - t1) : 0;
+
+        double cpuPercent = (100.0 * deltaTicks / hertz) / (1.0 * numCPUs);
+
+        unsigned long long virt = p2.vsize;
+        unsigned long long res  = static_cast<unsigned long long>(p2.rss) * pageSize;
+        double cpuTime = jiffsToMinutes(p2.utime + p2.stime);
+
+        std::cout << p2.pid << "   "<< p2.state << "     "<< p2.priority << " "<< p2.nice << " "<< virt << " "<< res << " "<< cpuPercent << "% "<< cpuTime << "min "<< p2.comm << "\n";
+    }
+
+    ///PER PROCESS
+    pid_t pid = getpid(); //current process
+    std::cout << "Metrics for PID: " << pid << std::endl;
+    std::cout << "\n--- Memory Usage ---" << std::endl;
+    getMemoryUsage(pid);
+    std::cout << "\n--- Disk I/O ---" << std::endl;
+    getDiskIO(pid);
+    std::cout << "\n--- Priority ---" << std::endl;
+    getPriority(pid);
+
+    
+    CURL * curl = curl_easy_init();
+
+    if(curl){
+    nlohmann::json j;
+
+    // Total CPU metrics
+    j["cpu"]["uptime"] = getUptime();
+    j["cpu"]["idle_time"] = getCPUIdle();
+    j["cpu"]["cores"] = getCores();
+    j["cpu"]["procs"] = statCount("processes");
+    j["cpu"]["context_switches"] = statCount("ctxt");
+    j["cpu"]["running_procs"] = statCount("proc_running");
+    j["cpu"]["blocked_procs"] = statCount("proc_blocked");
+    j["cpu"]["btime"] = statCount("btime");
+
+    // Per-core metrics
+    for(size_t i{}; i < getCores(); i++){
+        std::string var = "cpu" + std::to_string(i);
+        std::vector<int> cpu = getCoreMetrics(var);
+        j["cores"][i]["name"] = var;
+        j["cores"][i]["user_proc"] = jiffsToMinutes(cpu.at(0));
+        j["cores"][i]["nice_proc"] = jiffsToMinutes(cpu.at(1));
+        j["cores"][i]["system_proc"] = jiffsToMinutes(cpu.at(2));
+        j["cores"][i]["idle"] = jiffsToMinutes(cpu.at(3));
+        j["cores"][i]["iowait"] = jiffsToMinutes(cpu.at(4));
+        j["cores"][i]["stolen"] = jiffsToMinutes(cpu.at(7));
+        j["cores"][i]["guest_proc"] = jiffsToMinutes(cpu.at(8));
+        j["cores"][i]["guest_niced"] = jiffsToMinutes(cpu.at(9));
+    }
+
+    //Memory metrics
+    j["memory"]["total"] = memCount("MemTotal:");
+    j["memory"]["free"] = memCount("MemFree:");
+    j["memory"]["available"] = memCount("MemAvailable:");
+    j["memory"]["used"] = memCount("MemTotal:") - memCount("MemAvailable:");
+    j["memory"]["buffer"] = memCount("Buffer:");
+    j["memory"]["cached"] = memCount("Cached:");
+    j["memory"]["swap_cached"] = memCount("SwapCached:");
+    j["memory"]["active"] = memCount("Active");
+    j["memory"]["swap_total"] = memCount("SwapTotal:");
+    j["memory"]["swap_free"] = memCount("SwapFree");
+    j["memory"]["swap_used"] = memCount("SwapTotal:") - memCount("SwapFree");
+
+    //Load average
+    std::vector<double> loadAvg = getLoadAverage();
+    j["loadavg"]["last_1"] = loadAvg.at(0);
+    j["loadavg"]["last_5"] = loadAvg.at(1);
+    j["loadavg"]["last_15"] = loadAvg.at(2);
+
+    //File descriptors
+    std::vector<long long> fds = getFileDescriptors();
+    j["fd"]["allocated_fd"] = fds.at(0); //research__________________________________
+    j["fd"]["used_fd"] = fds.at(1);
+    j["fd"]["open"] = fds.at(1) - fds.at(0);
+
+    //Disk devices
+    std::vector<std::string> devs = getDiskDevices();
+    for(size_t i{}; i < devs.size(); i++){
+        std::vector<long> dev = getDiskDevicesMetrics(devs[i]);
+        j["disk_devices"][i]["name"] = devs[i];
+        j["disk_devices"][i]["sectors_read"] = dev[4];
+        j["disk_devices"][i]["time_spent"] = jiffsToMinutes(dev[5]);
+        j["disk_devices"][i]["writes_completed"] = dev[6];
+        j["disk_devices"][i]["time_writing"] = jiffsToMinutes(dev[9]);
+        j["disk_devices"][i]["time_io"] = jiffsToMinutes(dev[11]);
+        j["disk_devices"][i]["io_progress"] = dev[10];
+
+           std::cout<<dev[i]<<std::endl;
+    }
+
+    // Disk usage
+    std::vector<std::string> diskPaths = getDiskPaths();
+    unsigned long long totalDisk{}, usedDisk{}, availableDisk{};
+    for(size_t i{}; i < diskPaths.size(); i++){
+        auto [total, available, used] = getDiskUsage(diskPaths[i]);
+        j["disk_usage"][diskPaths[i]]["total"] = total;
+        j["disk_usage"][diskPaths[i]]["available"] = available;
+        j["disk_usage"][diskPaths[i]]["used"] = used;   
+        totalDisk += total;
+        availableDisk += available;
+        usedDisk += used;
+    }
+    j["disk"]["number"] = diskPaths.size();
+    j["disk"]["total"] = totalDisk;
+    std::cout<<"TOTAL DISK : "<<totalDisk<<std::endl;
+    j["disk"]["available"] = availableDisk;
+    j["disk"]["used"] = usedDisk; 
+
+    std::cout<<"_______________________________NETWORK Stats______________________________"<<std::endl;
+    auto [bytes,dropped, errors, rx_packets] = getNetworkMetrics("wlan0:");
+    std::cout<<"Bytes: "<<btoMB(bytes)<<" Mb"<<std::endl;
+    std::cout<<"Dropped: "<<btoMB(dropped)<<" Mb"<<std::endl;
+    std::cout<<"Errors: "<<errors<<""<<std::endl;
+
+    // Network metrics
+    for(size_t i {}; i < getNetworkInterfaces().size(); i++){
+        auto [bytes,dropped, errors, rx_packets] = getNetworkMetrics(getNetworkInterfaces().at(i));
+        j["network"][i]["name"] = getNetworkInterfaces().at(i);
+        j["network"][i]["bytes"] = bytes;
+        j["network"][i]["dropped"] = dropped;
+        j["network"][i]["errors"] = errors;
+        j["network"][i]["rx_packets"] = rx_packets;
+    }   
+
+    for(size_t i{}; i < getCores(); i++){
+        std::string var = "cpu" + std::to_string(i);
+        std::vector<int> cpu = getCoreMetrics(var);
+        j["cores"][i]["user_proc"] = jiffsToMinutes(cpu.at(0));
+        j["cores"][i]["nice_proc"] = jiffsToMinutes(cpu.at(1));
+        j["cores"][i]["system_proc"] = jiffsToMinutes(cpu.at(2));
+        j["cores"][i]["idle"] = jiffsToMinutes(cpu.at(3));
+        j["cores"][i]["iowait"] = jiffsToMinutes(cpu.at(4));
+        j["cores"][i]["stolen"] = jiffsToMinutes(cpu.at(7));
+        j["cores"][i]["guest_proc"] = jiffsToMinutes(cpu.at(8));
+        j["cores"][i]["guest_niced"] = jiffsToMinutes(cpu.at(9));
+    }
+    int i {};
+    for (auto &p2 : snap2) {
+        auto it = std::find_if(snap1.begin(), snap1.end(), [&](const ProcInfo& p1){ return p1.pid == p2.pid; });
+        if (it == snap1.end()) continue;
+
+        unsigned long t1 = it->utime + it->stime;
+        unsigned long t2 = p2.utime + p2.stime;
+        unsigned long deltaTicks = (t2 > t1) ? (t2 - t1) : 0;
+
+        double cpuPercent = (100.0 * deltaTicks / hertz) / (1.0 * numCPUs);
+
+        unsigned long long virt = p2.vsize;
+        unsigned long long res  = static_cast<unsigned long long>(p2.rss) * pageSize;
+        double cpuTime = jiffsToSeconds(p2.utime + p2.stime);
+
+        j["procs"][i]["pid"] = p2.pid;
+        j["procs"][i]["state"] = p2.state;
+        j["procs"][i]["pr"] = p2.priority;
+        j["procs"][i]["ni"] = p2.nice;
+        j["procs"][i]["virt"] = virt;
+        j["procs"][i]["res"] = btoMB(res);
+        j["procs"][i]["cpu"] = cpuPercent;
+        j["procs"][i]["time"] = cpuTime;
+        j["procs"][i]["cmd"] = p2.comm;
+        i++;
+    }
+
+    std::string systemData = j.dump();
+
+    curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:5000/metrics");
+    curl_easy_setopt(curl, CURLOPT_POST, 1L);
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, systemData.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, (long)systemData.size());
+
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Content-Type: application/json");
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+    // ──debugging ──
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);           // prints detailed trace to stderr
+
+    CURLcode res = curl_easy_perform(curl);
+
+    if (res != CURLE_OK) {
+        fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                curl_easy_strerror(res));
+    
+        char *errbuf = new char[CURL_ERROR_SIZE];
+        errbuf[0] = 0;
+        curl_easy_setopt(curl, CURLOPT_ERRORBUFFER, errbuf);
+    } else {
+        long http_code = 0;
+        curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &http_code);
+        fprintf(stderr, "Request sent OK → HTTP status: %ld\n", http_code);
+    }
+
+    curl_slist_free_all(headers);
+    curl_easy_cleanup(curl);
     }
 
     return 0;
