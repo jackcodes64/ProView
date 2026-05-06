@@ -9,9 +9,9 @@ const mysql = require("mysql2");
 const connection = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "disguise9",
+    password: "yeijsnd88",
     database: "processes",
-    connectTimeout: 5000
+    connectTimeout: 5050
 })
 
 app.get("/procs", (req, res)=>{
