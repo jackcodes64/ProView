@@ -1,0 +1,5 @@
+{
+  "name": "ProView",
+  "description": "A comprehensive system monitoring dashboard with real-time process, resource, and storage analytics.",
+  "requestFramePermissions": []
+}

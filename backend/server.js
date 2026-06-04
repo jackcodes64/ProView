@@ -1,22 +1,25 @@
 const express = require("express")
 const app = express();
 const cors = require("cors");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 app.use(express.json());
 app.use(cors())
+
+require("dotenv").config();
 
 const mysql = require("mysql2");
 const connection = mysql.createConnection({
     host: "localhost",
     user: "root",
-    password: "yeijsnd88",
+    password: "disguise9",
     database: "processes",
-    connectTimeout: 5050
+    connectTimeout: 5000
 })
 
 app.get("/procs", (req, res)=>{
     connection.query(
-        "SELECT * FROM PROCS WHERE timestamp = (SELECT MAX(timestamp) FROM PROCS) - 1", (err, rows)=>{
+        "SELECT * FROM PROCS WHERE timestamp = (SELECT MAX(timestamp) FROM PROCS)", (err, rows)=>{
             if(err){
                 console.log("An Error Occured While Fetching Procs");
                 res.status(500).send("Error Retrieving Procs");
@@ -225,6 +228,46 @@ app.post('/metrics', async (req, res) => {
         console.error("Error inserting sytem metrics:" , error);
         res.status(500).send("Internal Server Error");
     }
+});
+
+// Gemini section
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+
+app.post("/api/ask", async (req, res) => {
+  const { prompt } = req.body;
+
+  try {
+        async function listModels() {
+                const response = await fetch(
+                  'https://generativelanguage.googleapis.com/v1/models',
+                  {
+                    headers: {
+                      'Content-Type': 'application/json',
+                      'Authorization': `Bearer ${process.env.GEMINI_API_KEY}`
+                    }
+                  }
+                );
+              
+                const data = await response.json();
+                console.log(data);
+              }
+        
+              listModels();
+        const result = await model.generateContent(
+                `You're a UNIX expert for ProView app, you respond to all prompts in ProView app about process analysis
+                , resources analysis, actionable insights: ${prompt}.
+              
+              Respond in this format:
+              - word limit 150, no asterics/styled formatting(Just small prose)!`
+              );;
+    
+    const response = await result.response.text(); 
+    res.json({ response });
+  } catch (error) {
+    console.error("Gemini error:", error);
+    res.status(500).json({ error: "Something went wrong with Gemini." });
+  }
 });
 
 app.listen(5000, ()=>{console.log("Server Running at port 5000")});
