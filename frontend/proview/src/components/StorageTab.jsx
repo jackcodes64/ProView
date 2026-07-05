@@ -11,8 +11,17 @@ import {
   YAxis, 
   CartesianGrid 
 } from 'recharts';
+import {askGemini} from "../services/Gemini.js"
+import {useState} from "react"
 
 export default function StorageTab({ data, settings }) {
+  const [aiInsight, setaiInsight] = useState("");
+
+  async function generateaiInsight(){
+    const prompt = `Analyze the processes and system overview and provide insights: ${JSON.stringify(data)}, Give insight about the processes in relation to storage, recommendations in less than 200 letters.`;
+    const insight = await askGemini(prompt);
+    setaiInsight(insight);
+  }
   return (
     <div className="storage-container">
       <div className="charts-grid">
@@ -111,6 +120,15 @@ export default function StorageTab({ data, settings }) {
           </div>
         </div>
       </div>
+      
+      <div className="aiInsight">
+            <div className="aiHeader"><h3>AI Insight</h3></div>
+            <div className="aiBody">
+              <button onClick={()=>generateaiInsight()}>Get Insight</button>
+              <p dangerouslySetInnerHTML={{__html: aiInsight && typeof aiInsight === "string"?aiInsight:"Processing..."}}></p>
+            </div>
+        </div>
+        
     </div>
   );
 }

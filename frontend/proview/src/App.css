@@ -74,7 +74,7 @@ body {
   width: 32px;
   height: 32px;
   background-color: var(--accent-color);
-  border-radius: 8px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -165,7 +165,7 @@ body {
   font-weight: 700;
   min-width: 18px;
   height: 18px;
-  border-radius: 9px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -553,6 +553,7 @@ body {
   border: #0a0a0a 1px solid;
   padding: 20px;
   grid-column: 1 / -1;
+  margin-top: 5px;
 }
 .aiHeader{
   color: #10b981;
@@ -562,6 +563,22 @@ body {
   border-left: 3px var(--accent-color) solid;
   padding: 20px;
   background-color: #404040;
+}
+.aiBody button{
+  background-color: #525252;
+  color: var(--accent-color);
+  padding: 5px;
+  border: #10b981 1px solid;
+  margin-left: 87%;
+  border-radius: 5px;
+  box-shadow: #10b981 2px;
+}
+.aiBody button:hover{
+  background-color: #404040;
+  border: #10b981 1px solid;
+}
+.aiBody button:active{
+  background-color: #0d0d0d;
 }
 .full-width-chart {
   grid-column: 1 / -1;
@@ -599,7 +616,7 @@ body {
 .table-card {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 5px;
   overflow: hidden;
 }
 
@@ -688,7 +705,7 @@ body {
 .settings-card {
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
+  border-radius: 5px;
   overflow: hidden;
 }
 
@@ -842,7 +859,7 @@ input:checked + .slider:before {
 }
 
 .slider.round {
-  border-radius: 20px;
+  border-radius: 5px;
 }
 
 .slider.round:before {
@@ -865,7 +882,7 @@ input:checked + .slider:before {
   height: 64px;
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  border-radius: 16px;
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -888,7 +905,7 @@ input:checked + .slider:before {
   color: white;
   border: none;
   padding: 8px 16px;
-  border-radius: 8px;
+  border-radius: 5px;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;

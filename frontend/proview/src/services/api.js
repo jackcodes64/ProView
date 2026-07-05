@@ -63,6 +63,8 @@ const FetchData = async () => {
 
   const diskDevices = await fetchDiskDevices();
 
+  //console.log(loadAvgs, cpuTimes, processes, systemStats, memoryData, disksData, diskDevices, networkData)
+
   return { loadAvgs, cpuTimes, processes, systemStats, memoryData, disksData, diskDevices, networkData };
 };
 

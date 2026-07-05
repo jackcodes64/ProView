@@ -62,7 +62,7 @@ export default function SettingsTab({ settings, setSettings }) {
             <div className="settings-title-group">
               <Sliders size={18} className="settings-icon-accent" />
               <div>
-                <h3 className="settings-title">Creative Settings</h3>
+                <h3 className="settings-title">Madoido Settings</h3>
                 <p className="settings-subtitle">Personalize your monitoring experience</p>
               </div>
             </div>

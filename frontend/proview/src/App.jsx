@@ -71,6 +71,8 @@ export default function App() {
     try {
       const result = await fetchAllSystemData();
       setData(result);
+      
+      //console.log(result);
       setError(null);
 
       // Check for alerts
@@ -196,6 +198,21 @@ export default function App() {
 }
 
 function TopStats({ data }) {
+	//----%inc
+	let procCount = 0;
+	let pcInc = 0;
+	function increase(){
+	      procCount = data.processes.length; // can be 0
+	      const prevCount = Number(localStorage.getItem("prevCount")) || 0; //can be zero
+	      const percentageInc = prevCount > 0 ? (procCount - prevCount) / prevCount * 100 : 100;
+	      pcInc = percentageInc.toFixed(2);
+	}
+	increase();
+	
+	useEffect(()=>{
+		localStorage.setItem("prevCount", procCount);
+	}, [procCount])
+        //----%inc
   return (
     <div className="stats-grid">
       <div className="stat-card">
@@ -205,7 +222,7 @@ function TopStats({ data }) {
           </div>
           <div className="stat-value-container">
             <span className="stat-value">{data.processes.length}</span>
-            <span className="stat-change positive">+2.4%</span>
+            <span className="stat-change positive">{pcInc >=0?"+ ":'- '}{Math.abs(pcInc)}%</span>
           </div>
         </div>
         <Activity size={16} color="#3b82f6" />
@@ -423,7 +440,7 @@ function OverviewTab({ data, processStatesData, settings }) {
       <div className="aiInsight">
             <div className="aiHeader"><h3>AI Insight</h3></div>
             <div className="aiBody">
-              <button onClick={()=>generateaiInsight()}>GET INSIGHT</button>
+              <button onClick={()=>generateaiInsight()}>Get Insight</button>
               <p dangerouslySetInnerHTML={{__html: aiInsight && typeof aiInsight === "string"?aiInsight:"Processing..."}}></p>
             </div>
         </div>
