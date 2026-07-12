@@ -394,130 +394,130 @@ void getDiskIO(pid_t pid) {
 }
 
 int main() {
-    std::cout<<"\n--- CPU ---               "<<std::endl;
-    std::cout<<"CPU uptime is:"<<getUptime()<<" s"<<std::endl;
-    std::cout<<"CPU idle time is:"<<getCPUIdle()<<" s"<<std::endl;
-    std::cout<<"Number of CPU cores :"<<getCores()<<" cores"<<std::endl;
-    std::cout<<"There are currently :"<<statCount("processes")<<" processes in the entire system (created since reboot)"<<std::endl;
-    std::cout<<"There are currently :"<<statCount("ctxt")<<" context switches since reboot"<<std::endl;                  
-    std::cout<<"There are currently :"<<statCount("proc_running")<<" running processes"<<std::endl;  
-    std::cout<<"There are currently :"<<statCount("proc_blocked")<<" blocked (waiting) processes"<<std::endl;
-    std::cout<<"The system has been up for :"<<jiffstoHours(statCount("btime"))<<" hours"<<std::endl;
+    // std::cout<<"\n--- CPU ---               "<<std::endl;
+    // std::cout<<"CPU uptime is:"<<getUptime()<<" s"<<std::endl;
+    // std::cout<<"CPU idle time is:"<<getCPUIdle()<<" s"<<std::endl;
+    // std::cout<<"Number of CPU cores :"<<getCores()<<" cores"<<std::endl;
+    // std::cout<<"There are currently :"<<statCount("processes")<<" processes in the entire system (created since reboot)"<<std::endl;
+    // std::cout<<"There are currently :"<<statCount("ctxt")<<" context switches since reboot"<<std::endl;                  
+    // std::cout<<"There are currently :"<<statCount("proc_running")<<" running processes"<<std::endl;  
+    // std::cout<<"There are currently :"<<statCount("proc_blocked")<<" blocked (waiting) processes"<<std::endl;
+    // std::cout<<"The system has been up for :"<<jiffstoHours(statCount("btime"))<<" hours"<<std::endl;
 
-    std::cout<<"____________________________________Total CPU Metrics________________________________"<<std::endl;
-    std::vector<int> cpu = getCoreMetrics("cpu");
-    std::cout<<"Time on user processes: "<<jiffstoHours(cpu.at(0))<<" hours"<<std::endl;
-    std::cout<<"Time on niced processes: "<<jiffstoHours(cpu.at(1))<<" hours"<<std::endl;
-    std::cout<<"Time on system processes: "<<jiffstoHours(cpu.at(2))<<" hours"<<std::endl;
-    std::cout<<"Time on idle: "<<jiffstoHours(cpu.at(3))<<" hours"<<std::endl;
-    std::cout<<"Time on stolen by other OSs: "<<cpu.at(7)<<" s"<<std::endl;
-    std::cout<<"Time on guest processes: "<<cpu.at(8)<<" s"<<std::endl;
-    std::cout<<"Time on guest's niced processes: "<<jiffsToMinutes(cpu.at(9))<<" minutes"<<std::endl;
-    std::cout<<"Time on iowait: "<<jiffstoHours(cpu.at(4))<<" hours"<<std::endl;
+    // std::cout<<"____________________________________Total CPU Metrics________________________________"<<std::endl;
+    // std::vector<int> cpu = getCoreMetrics("cpu");
+    // std::cout<<"Time on user processes: "<<jiffstoHours(cpu.at(0))<<" hours"<<std::endl;
+    // std::cout<<"Time on niced processes: "<<jiffstoHours(cpu.at(1))<<" hours"<<std::endl;
+    // std::cout<<"Time on system processes: "<<jiffstoHours(cpu.at(2))<<" hours"<<std::endl;
+    // std::cout<<"Time on idle: "<<jiffstoHours(cpu.at(3))<<" hours"<<std::endl;
+    // std::cout<<"Time on stolen by other OSs: "<<cpu.at(7)<<" s"<<std::endl;
+    // std::cout<<"Time on guest processes: "<<cpu.at(8)<<" s"<<std::endl;
+    // std::cout<<"Time on guest's niced processes: "<<jiffsToMinutes(cpu.at(9))<<" minutes"<<std::endl;
+    // std::cout<<"Time on iowait: "<<jiffstoHours(cpu.at(4))<<" hours"<<std::endl;
 
-    std::vector<int> cpuSamp1 = getCoreMetrics("cpu");
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    std::vector<int> cpuSamp2 = getCoreMetrics("cpu");
-    long double cpuSum1{}, idleWait1{};
-    long double cpuSum2{}, idleWait2{};
-    for(size_t i {}; i < cpuSamp1.size(); i++){
-        if(i == 3 || i == 4){
-            idleWait1 += cpuSamp1.at(i);
-        }
-        cpuSum1 += cpuSamp1.at(i);
-    }
-    for(size_t i {}; i < cpuSamp2.size(); i++){
-        if(i == 3 || i == 4){
-            idleWait2 += cpuSamp2.at(i);
-        }
-        cpuSum2 += cpuSamp2.at(i);
-    }
-    long double deltaCPU = cpuSum2 - cpuSum1;
-    long double deltaIdle = idleWait2 - idleWait1;
-    long double usage = ((deltaCPU - deltaIdle) / deltaCPU) * 100.0;
-    std::cout<<"CPU usage: "<<usage<<"%"<<std::endl;
+    // std::vector<int> cpuSamp1 = getCoreMetrics("cpu");
+    // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    // std::vector<int> cpuSamp2 = getCoreMetrics("cpu");
+    // long double cpuSum1{}, idleWait1{};
+    // long double cpuSum2{}, idleWait2{};
+    // for(size_t i {}; i < cpuSamp1.size(); i++){
+    //     if(i == 3 || i == 4){
+    //         idleWait1 += cpuSamp1.at(i);
+    //     }
+    //     cpuSum1 += cpuSamp1.at(i);
+    // }
+    // for(size_t i {}; i < cpuSamp2.size(); i++){
+    //     if(i == 3 || i == 4){
+    //         idleWait2 += cpuSamp2.at(i);
+    //     }
+    //     cpuSum2 += cpuSamp2.at(i);
+    // }
+    // long double deltaCPU = cpuSum2 - cpuSum1;
+    // long double deltaIdle = idleWait2 - idleWait1;
+    // long double usage = ((deltaCPU - deltaIdle) / deltaCPU) * 100.0;
+    // std::cout<<"CPU usage: "<<usage<<"%"<<std::endl;
 
 
 
-    for(size_t i{}; i < getCores(); i++){
-    std::cout<<"____________________________________Core "<< i+1 <<" Metrics________________________________"<<std::endl;
-    std::string var = "cpu" + std::to_string(i);
-    std::vector<int> cpu = getCoreMetrics(var);
-    std::cout<<"Time on user processes: "<<jiffstoHours(cpu.at(0))<<" hours"<<std::endl;
-    std::cout<<"Time on niced processes: "<<jiffstoHours(cpu.at(1))<<" hours"<<std::endl;
-    std::cout<<"Time on system processes: "<<jiffstoHours(cpu.at(2))<<" hours"<<std::endl;
-    std::cout<<"Time on idle: "<<jiffstoHours(cpu.at(3))<<" hours"<<std::endl;
-    std::cout<<"Time on iowait: "<<jiffstoHours(cpu.at(4))<<" hours"<<std::endl;
-    std::cout<<"Time on stolen by other OSs: "<<cpu.at(7)<<" s"<<std::endl;
-    std::cout<<"Time on guest processes: "<<cpu.at(8)<<" s"<<std::endl;
-    std::cout<<"Time on guest's niced processes: "<<jiffsToMinutes(cpu.at(9))<<" minutes"<<std::endl;
-    }
+    // for(size_t i{}; i < getCores(); i++){
+    // std::cout<<"____________________________________Core "<< i+1 <<" Metrics________________________________"<<std::endl;
+    // std::string var = "cpu" + std::to_string(i);
+    // std::vector<int> cpu = getCoreMetrics(var);
+    // std::cout<<"Time on user processes: "<<jiffstoHours(cpu.at(0))<<" hours"<<std::endl;
+    // std::cout<<"Time on niced processes: "<<jiffstoHours(cpu.at(1))<<" hours"<<std::endl;
+    // std::cout<<"Time on system processes: "<<jiffstoHours(cpu.at(2))<<" hours"<<std::endl;
+    // std::cout<<"Time on idle: "<<jiffstoHours(cpu.at(3))<<" hours"<<std::endl;
+    // std::cout<<"Time on iowait: "<<jiffstoHours(cpu.at(4))<<" hours"<<std::endl;
+    // std::cout<<"Time on stolen by other OSs: "<<cpu.at(7)<<" s"<<std::endl;
+    // std::cout<<"Time on guest processes: "<<cpu.at(8)<<" s"<<std::endl;
+    // std::cout<<"Time on guest's niced processes: "<<jiffsToMinutes(cpu.at(9))<<" minutes"<<std::endl;
+    // }
 
-    std::cout<<"\n___________________________________Memory______________________________________________"<<std::endl;
-    std::cout<<"Total main memory :"<<memCount("MemTotal:")/1024<<" MB"<<std::endl;
-    std::cout<<"Free main memory :"<<memCount("MemFree:")/1024<<" MB"<<std::endl;
-    std::cout<<"Available memory :"<<memCount("MemAvailable:")/1024<<" MB (surrendered begrudgingly)"<<std::endl;
-    std::cout<<"Used memory :"<<(memCount("MemTotal:") - memCount("MemAvailable:"))/1024<<" MB"<<std::endl;
-    std::cout<<"Buffer memory :"<<memCount("Buffer:")/1024<<" MB"<<std::endl;
-    std::cout<<"Cached memory :"<<memCount("Cached:")/1024<<" MB"<<std::endl;
-    std::cout<<"Swapped but cached memory :"<<memCount("SwapCached:")/1024<<" MB"<<std::endl;
-    std::cout<<"Active memory :"<<memCount("Active")/1024<<" MB"<<std::endl;
-    std::cout<<"Total swap memory :"<<memCount("SwapFree")/(1024.0*1024.0)<<" GB"<<std::endl;
-    std::cout<<"Used swap memory :"<<memCount("SwapFree")/1024<<" MB"<<std::endl;
+    // std::cout<<"\n___________________________________Memory______________________________________________"<<std::endl;
+    // std::cout<<"Total main memory :"<<memCount("MemTotal:")/1024<<" MB"<<std::endl;
+    // std::cout<<"Free main memory :"<<memCount("MemFree:")/1024<<" MB"<<std::endl;
+    // std::cout<<"Available memory :"<<memCount("MemAvailable:")/1024<<" MB (surrendered begrudgingly)"<<std::endl;
+    // std::cout<<"Used memory :"<<(memCount("MemTotal:") - memCount("MemAvailable:"))/1024<<" MB"<<std::endl;
+    // std::cout<<"Buffer memory :"<<memCount("Buffer:")/1024<<" MB"<<std::endl;
+    // std::cout<<"Cached memory :"<<memCount("Cached:")/1024<<" MB"<<std::endl;
+    // std::cout<<"Swapped but cached memory :"<<memCount("SwapCached:")/1024<<" MB"<<std::endl;
+    // std::cout<<"Active memory :"<<memCount("Active")/1024<<" MB"<<std::endl;
+    // std::cout<<"Total swap memory :"<<memCount("SwapFree")/(1024.0*1024.0)<<" GB"<<std::endl;
+    // std::cout<<"Used swap memory :"<<memCount("SwapFree")/1024<<" MB"<<std::endl;
 
-    std::cout << "\n--- Zombie Processes ---" << std::endl;
-    std::cout << "Zombie count: " << countZombies() << std::endl;
+    // std::cout << "\n--- Zombie Processes ---" << std::endl;
+    // std::cout << "Zombie count: " << countZombies() << std::endl;
 
-    std::cout<<"___________________________Load Averages________________________________"<<std::endl;
-    std::vector<double> loadAvg = getLoadAverage();
-    std::cout<<"Load average in the last 1 minute is: "<<loadAvg.at(0)<<std::endl;
-    std::cout<<"Load average in the last 5 minute is: "<<loadAvg.at(1)<<std::endl;
-    std::cout<<"Load average in the last 15 minute is: "<<loadAvg.at(2)<<std::endl;
+    // std::cout<<"___________________________Load Averages________________________________"<<std::endl;
+    // std::vector<double> loadAvg = getLoadAverage();
+    // std::cout<<"Load average in the last 1 minute is: "<<loadAvg.at(0)<<std::endl;
+    // std::cout<<"Load average in the last 5 minute is: "<<loadAvg.at(1)<<std::endl;
+    // std::cout<<"Load average in the last 15 minute is: "<<loadAvg.at(2)<<std::endl;
 
-    std::cout<<"___________________________File Descriptors________________________________"<<std::endl;
-    std::vector<long long> fds = getFileDescriptors();
-    std::cout<<"Used file descriptors: "<<fds.at(0)<<std::endl;
-    std::cout<<"Allocated fds but not used: "<<fds.at(1)<<std::endl;
-    std::cout<<"Open: "<<(fds.at(0)-fds.at(0))<<std::endl;
+    // std::cout<<"___________________________File Descriptors________________________________"<<std::endl;
+    // std::vector<long long> fds = getFileDescriptors();
+    // std::cout<<"Used file descriptors: "<<fds.at(0)<<std::endl;
+    // std::cout<<"Allocated fds but not used: "<<fds.at(1)<<std::endl;
+    // std::cout<<"Open: "<<(fds.at(0)-fds.at(0))<<std::endl;
 
-    std::cout<<"___________________________Disk Devices________________________________"<<std::endl;
-    std::vector<std::string> devs = getDiskDevices();
-    std::cout<<"Number of devices: "<<devs.size()<<std::endl;
-    for(size_t i{}; i < devs.size(); i++){
-        std::cout<<"\n"<<i+1<<". _________Device "<<devs[i]<<" metrics_______"<<std::endl;
-        std::vector<long> dev = getDiskDevicesMetrics(devs[i]);
-        std::cout<<"Device name: "<<devs[i]<<std::endl;
-        std::cout<<"Sectors read: "<<dev[4]<<std::endl;
-        std::cout<<"Time spent: "<<jiffsToMinutes(dev[5])<<" minutes"<<std::endl;
-        std::cout<<"writes completed: "<<dev[6]<<std::endl;
-        std::cout<<"Time spent writing : "<<jiffsToMinutes(dev[9])<<" minutes"<<std::endl;
-        std::cout<<"Time spent on I/Os : "<<jiffsToMinutes(dev[11])<<" minutes"<<std::endl;
-        std::cout<<"I/Os in progress : "<<dev[10]<<std::endl;
-    }
+    // std::cout<<"___________________________Disk Devices________________________________"<<std::endl;
+    // std::vector<std::string> devs = getDiskDevices();
+    // std::cout<<"Number of devices: "<<devs.size()<<std::endl;
+    // for(size_t i{}; i < devs.size(); i++){
+    //     std::cout<<"\n"<<i+1<<". _________Device "<<devs[i]<<" metrics_______"<<std::endl;
+    //     std::vector<long> dev = getDiskDevicesMetrics(devs[i]);
+    //     std::cout<<"Device name: "<<devs[i]<<std::endl;
+    //     std::cout<<"Sectors read: "<<dev[4]<<std::endl;
+    //     std::cout<<"Time spent: "<<jiffsToMinutes(dev[5])<<" minutes"<<std::endl;
+    //     std::cout<<"writes completed: "<<dev[6]<<std::endl;
+    //     std::cout<<"Time spent writing : "<<jiffsToMinutes(dev[9])<<" minutes"<<std::endl;
+    //     std::cout<<"Time spent on I/Os : "<<jiffsToMinutes(dev[11])<<" minutes"<<std::endl;
+    //     std::cout<<"I/Os in progress : "<<dev[10]<<std::endl;
+    // }
 
-    std::cout<<"_______________________________DISK USAGE______________________________"<<std::endl;
+    //std::cout<<"_______________________________DISK USAGE______________________________"<<std::endl;
     std::vector<std::string> diskPaths = getDiskPaths();
     unsigned long long totalDisk{}, usedDisk{}, availableDisk{};
     for(auto path : getDiskPaths()){
     auto [total, available, used] = getDiskUsage(path);
-    std::cout<<"For "<<path<<", total memory: "<<total/(1024*1024*1024)<<"GB | Available: "<<available/(1024*1024*1024)<<"GB | used: "<<used/(1024*1024*1024)<<"GB."<<std::endl;
+    //std::cout<<"For "<<path<<", total memory: "<<total/(1024*1024*1024)<<"GB | Available: "<<available/(1024*1024*1024)<<"GB | used: "<<used/(1024*1024*1024)<<"GB."<<std::endl;
     totalDisk += total;
     availableDisk += available;
     usedDisk += used;
     }
-    std::cout<<"The total disk space is: "<<totalDisk/(1024*1024*1024)<<"GB"<<std::endl;
-    std::cout<<"The available disk space is: "<<availableDisk/(1024*1024*1024)<<"GB"<<std::endl;
-    std::cout<<"The used disk space is: "<<usedDisk/(1024*1024*1024)<<"GB"<<std::endl;
+    // std::cout<<"The total disk space is: "<<totalDisk/(1024*1024*1024)<<"GB"<<std::endl;
+    // std::cout<<"The available disk space is: "<<availableDisk/(1024*1024*1024)<<"GB"<<std::endl;
+    // std::cout<<"The used disk space is: "<<usedDisk/(1024*1024*1024)<<"GB"<<std::endl;
 
 
-    std::cout<<"_______________________________NETWORK Stats______________________________"<<std::endl;
-    auto [bytes,dropped, errors, rx_packets] = getNetworkMetrics("wlan0:");
-    std::cout<<"Bytes: "<<btoMB(bytes)<<" Mb"<<std::endl;
-    std::cout<<"Dropped: "<<btoMB(dropped)<<" Mb"<<std::endl;
-    std::cout<<"Errors: "<<errors<<""<<std::endl;
+    // std::cout<<"_______________________________NETWORK Stats______________________________"<<std::endl;
+    // auto [bytes,dropped, errors, rx_packets] = getNetworkMetrics("wlan0:");
+    // std::cout<<"Bytes: "<<btoMB(bytes)<<" Mb"<<std::endl;
+    // std::cout<<"Dropped: "<<btoMB(dropped)<<" Mb"<<std::endl;
+    // std::cout<<"Errors: "<<errors<<""<<std::endl;
 
     for(auto face : getNetworkInterfaces()){
-        std::cout<<face<<""<<std::endl;
+        //std::cout<<face<<""<<std::endl;
     }
 
     // for(auto pid : getPids()){
@@ -558,17 +558,17 @@ int main() {
         unsigned long long res  = static_cast<unsigned long long>(p2.rss) * pageSize;
         double cpuTime = jiffsToMinutes(p2.utime + p2.stime);
 
-        std::cout << p2.pid << "   "<< p2.state << "     "<< p2.priority << " "<< p2.nice << " "<< virt << " "<< res << " "<< cpuPercent << "% "<< cpuTime << "min "<< p2.comm << "\n";
+        //std::cout << p2.pid << "   "<< p2.state << "     "<< p2.priority << " "<< p2.nice << " "<< virt << " "<< res << " "<< cpuPercent << "% "<< cpuTime << "min "<< p2.comm << "\n";
     }
 
     ///PER PROCESS
     pid_t pid = getpid(); //current process
-    std::cout << "Metrics for PID: " << pid << std::endl;
-    std::cout << "\n--- Memory Usage ---" << std::endl;
+    //std::cout << "Metrics for PID: " << pid << std::endl;
+    //std::cout << "\n--- Memory Usage ---" << std::endl;
     getMemoryUsage(pid);
-    std::cout << "\n--- Disk I/O ---" << std::endl;
+    //std::cout << "\n--- Disk I/O ---" << std::endl;
     getDiskIO(pid);
-    std::cout << "\n--- Priority ---" << std::endl;
+    //std::cout << "\n--- Priority ---" << std::endl;
     getPriority(pid);
 
     
@@ -639,7 +639,7 @@ int main() {
         j["disk_devices"][i]["time_io"] = jiffsToMinutes(dev[11]);
         j["disk_devices"][i]["io_progress"] = dev[10];
 
-           std::cout<<dev[i]<<std::endl;
+           //std::cout<<dev[i]<<std::endl;
     }
 
     // Disk usage
@@ -656,15 +656,15 @@ int main() {
     }
     j["disk"]["number"] = diskPaths.size();
     j["disk"]["total"] = totalDisk;
-    std::cout<<"TOTAL DISK : "<<totalDisk<<std::endl;
+    //std::cout<<"TOTAL DISK : "<<totalDisk<<std::endl;
     j["disk"]["available"] = availableDisk;
     j["disk"]["used"] = usedDisk; 
 
-    std::cout<<"_______________________________NETWORK Stats______________________________"<<std::endl;
-    auto [bytes,dropped, errors, rx_packets] = getNetworkMetrics("wlan0:");
-    std::cout<<"Bytes: "<<btoMB(bytes)<<" Mb"<<std::endl;
-    std::cout<<"Dropped: "<<btoMB(dropped)<<" Mb"<<std::endl;
-    std::cout<<"Errors: "<<errors<<""<<std::endl;
+    // std::cout<<"_______________________________NETWORK Stats______________________________"<<std::endl;
+    // auto [bytes,dropped, errors, rx_packets] = getNetworkMetrics("wlan0:");
+    // std::cout<<"Bytes: "<<btoMB(bytes)<<" Mb"<<std::endl;
+    // std::cout<<"Dropped: "<<btoMB(dropped)<<" Mb"<<std::endl;
+    // std::cout<<"Errors: "<<errors<<""<<std::endl;
 
     // Network metrics
     for(size_t i {}; i < getNetworkInterfaces().size(); i++){
@@ -705,10 +705,6 @@ int main() {
 
         j["procs"][i]["pid"] = p2.pid;
         j["procs"][i]["state"] = p2.state;
-        j["procs"][i]["pr"] = p2.priority;
-        j["procs"][i]["ni"] = p2.nice;
-        j["procs"][i]["virt"] = virt;
-        j["procs"][i]["res"] = btoMB(res);
         j["procs"][i]["cpu"] = cpuPercent;
         j["procs"][i]["time"] = cpuTime;
         j["procs"][i]["cmd"] = p2.comm;
@@ -727,7 +723,7 @@ int main() {
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
     // ──debugging ──
-    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);           // prints detailed trace to stderr
+    curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);           // print detailed trace to stderr
 
     CURLcode res = curl_easy_perform(curl);
 

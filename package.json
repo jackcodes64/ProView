@@ -1,0 +1,20 @@
+{
+  "name": "ProView",
+  "version": "1.0.0",
+  "description": "A tool to monitor processes metrics in Unix systems.",
+  "homepage": "https://github.com/jackcodes64/ProView#readme",
+  "bugs": {
+    "url": "https://github.com/jackcodes64/ProView/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jackcodes64/ProView.git"
+  },
+  "license": "MIT",
+  "author": "Jack Orwa, OlasiKnight",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}

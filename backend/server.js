@@ -14,12 +14,12 @@ const connection = mysql.createConnection({
     user: "root",
     password: "disguise9",
     database: "processes",
-    connectTimeout: 5000
+    connectTimeout: 50000
 })
 
 app.get("/procs", (req, res)=>{
     connection.query(
-        "SELECT * FROM PROCS WHERE timestamp = (SELECT MAX(timestamp) FROM PROCS)", (err, rows)=>{
+        "SELECT cmd, id, pid, state, time FROM PROCS WHERE batch = (SELECT MAX(batch_id) FROM BATCHES)", (err, rows)=>{
             if(err){
                 console.log("An Error Occured While Fetching Procs");
                 res.status(500).send("Error Retrieving Procs");
@@ -116,8 +116,6 @@ app.post('/metrics', async (req, res) => {
         return res.status(400).send("Invalid System data");
     }
 
-    console.log("API /metrics fetched with data:", data);
-
     console.log(data.cpu.uptime);
     try {
         connection.query(
@@ -183,7 +181,6 @@ app.post('/metrics', async (req, res) => {
                 data.disk.available || 0, 
                 data.disk.used || 0]
         );
-        console.log("TOTAL DISK; ", data.disk.total);//debug
 
         connection.query(
             'INSERT INTO LOAD_AVGS(last_1, last_5, last_15) VALUES (?,?,?)',
@@ -208,20 +205,32 @@ app.post('/metrics', async (req, res) => {
                 face.errors || 0]
             );
         }
-
-        for(let proc of data.procs){
+        
+        connection.query(
+            "INSERT INTO BATCHES (timestamp) VALUES (NOW())", (err, row)=>{//increment batch
+                if(err) throw err;
+            }
+        );
+        
+        let batch = 1; //init batch 
+        
+        connection.query('SELECT MAX(batch_id) FROM BATCHES', (err, row)=>{
+            batch = row[0]['MAX(batch_id)'];
+            console.log("The inner/writing batch is : ",batch); //debug
+            
+            for(let proc of data.procs){
             connection.query(
-                'INSERT INTO PROCS(pid, state, pr, nice, cpu, time, cmd) VALUES (?,?,?,?,?,?,?)',
+                'INSERT INTO PROCS(pid, state, time, cmd, batch) VALUES (?,?,?,?,?)',
                 [   proc.pid ||0,
                     String.fromCharCode(proc.state) || "E",
-                    proc.pr ||0,
-                    proc.ni ||0,
-                    proc.cpu ||0,
                     proc.time ||0,
-                    proc.cmd || "Unknown"
+                    proc.cmd || "Unknown",
+                    batch,
                 ]
             );
         }
+        });
+        
 
         res.sendStatus(200);
     } catch (error) {
@@ -250,7 +259,7 @@ app.post("/api/ask", async (req, res) => {
                 );
               
                 const data = await response.json();
-                console.log(data);
+                console.log(data); //debug
               }
         
               listModels();
@@ -259,7 +268,7 @@ app.post("/api/ask", async (req, res) => {
                 , resources analysis, actionable insights: ${prompt}.
               
               Respond in this format:
-              - word limit 150, no asterics/styled formatting(Just small prose)!`
+              - word limit 200, no asterics/styled formatting(Just small prose)!`
               );;
     
     const response = await result.response.text(); 
